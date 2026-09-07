@@ -18,4 +18,4 @@ exec docker run --rm \
     -u "$(id -u):$(id -g)" \
     -e COMPOSER_HOME=/tmp/composer \
     composer:2 \
-    sh -c "composer install --no-interaction --quiet && vendor/bin/phpunit $*"
+    sh -c 'composer install --no-interaction --quiet && exec vendor/bin/phpunit "$@"' -- "$@"
