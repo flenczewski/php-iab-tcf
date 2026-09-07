@@ -91,4 +91,74 @@ final class RangeSectionTest extends TestCase
         $bits = RangeSection::encode($ids);
         self::assertSame($ids, RangeSection::decode(new BitReader($bits)));
     }
+
+    private static function hostileRangeList(int $entries): string
+    {
+        // Each entry claims the full 1..65535 span, so a naive decoder expands
+        // to entries * 65535 array elements from a payload of a few KB.
+        $writer = new \Flenczewski\IabTcf\BitWriter();
+        $writer->writeUint($entries, 12);
+        for ($i = 0; $i < $entries; $i++) {
+            $writer->writeBool(true)->writeUint(1, 16)->writeUint(65535, 16);
+        }
+
+        return $writer->toBitString();
+    }
+
+    public function testRejectsRangeListThatWouldExpandBeyondTheVendorIdSpace(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\InvalidTcStringException::class);
+        $this->expectExceptionMessage('more than 65535');
+
+        RangeSection::decodeRangeList(new BitReader(self::hostileRangeList(500)));
+    }
+
+    public function testHostileRangeListIsRejectedQuicklyAndCheaply(): void
+    {
+        $before = memory_get_usage();
+        $start = microtime(true);
+
+        try {
+            RangeSection::decodeRangeList(new BitReader(self::hostileRangeList(500)));
+            self::fail('Expected the hostile payload to be rejected.');
+        } catch (\Flenczewski\IabTcf\Exception\InvalidTcStringException) {
+            // expected
+        }
+
+        self::assertLessThan(0.1, microtime(true) - $start, 'Rejection must be fast.');
+        self::assertLessThan(2_000_000, memory_get_usage() - $before, 'Rejection must not allocate.');
+    }
+
+    public function testRejectsRangeWithStartAboveEnd(): void
+    {
+        $writer = new \Flenczewski\IabTcf\BitWriter();
+        $writer->writeUint(1, 12)->writeBool(true)->writeUint(9, 16)->writeUint(2, 16);
+
+        $this->expectException(\Flenczewski\IabTcf\Exception\InvalidTcStringException::class);
+
+        RangeSection::decodeRangeList(new BitReader($writer->toBitString()));
+    }
+
+    public function testRejectsVendorIdZero(): void
+    {
+        $writer = new \Flenczewski\IabTcf\BitWriter();
+        $writer->writeUint(1, 12)->writeBool(false)->writeUint(0, 16);
+
+        $this->expectException(\Flenczewski\IabTcf\Exception\InvalidTcStringException::class);
+
+        RangeSection::decodeRangeList(new BitReader($writer->toBitString()));
+    }
+
+    public function testOverlappingRangesDecodeToASortedUniqueList(): void
+    {
+        $writer = new \Flenczewski\IabTcf\BitWriter();
+        $writer->writeUint(2, 12);
+        $writer->writeBool(true)->writeUint(1, 16)->writeUint(5, 16);
+        $writer->writeBool(true)->writeUint(3, 16)->writeUint(7, 16);
+
+        self::assertSame(
+            [1, 2, 3, 4, 5, 6, 7],
+            RangeSection::decodeRangeList(new BitReader($writer->toBitString()))
+        );
+    }
 }
