@@ -15,7 +15,7 @@ namespace Flenczewski\IabTcf;
 final class RangeSection
 {
     /** NumEntries is a 12-bit field — a range list beyond this many entries cannot be encoded. */
-    private const MAX_RANGE_ENTRIES = 0xFFF;
+    private const MAX_RANGE_ENTRIES = Spec::MAX_RANGE_ENTRIES;
 
     /** @param int[] $vendorIds */
     public static function encode(array $vendorIds): string

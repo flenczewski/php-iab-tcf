@@ -16,8 +16,20 @@ final class BitWriter
 
     public function writeUint(int $value, int $numBits): static
     {
+        if ($numBits < 0 || $numBits > 63) {
+            throw new InvalidArgumentException("Field width must be between 0 and 63 bits, got {$numBits}.");
+        }
         if ($value < 0) {
             throw new InvalidArgumentException("Value must be >= 0, got {$value}.");
+        }
+        // A zero-width field can only carry the value 0, and str_pad() never
+        // truncates — so this case must be handled before padding.
+        if ($numBits === 0) {
+            if ($value !== 0) {
+                throw new InvalidArgumentException("Value {$value} does not fit in 0 bits.");
+            }
+
+            return $this;
         }
         if ($numBits < 63 && $value >= (1 << $numBits)) {
             throw new InvalidArgumentException("Value {$value} does not fit in {$numBits} bits.");
@@ -39,10 +51,21 @@ final class BitWriter
      * Writes a fixed-width bitfield where each bit position (1-based id) is set
      * to 1 if present in $ids. Used for Purposes, Special Features, etc.
      *
+     * Ids outside 1..$width cannot be represented and are rejected rather than
+     * dropped — silently losing a purpose or vendor id would be a consent bug.
+     *
      * @param int[] $ids
      */
     public function writeIdSet(array $ids, int $width): static
     {
+        foreach ($ids as $id) {
+            if ($id < 1 || $id > $width) {
+                throw new InvalidArgumentException(
+                    "Cannot write id {$id} into a {$width}-bit field: ids must be between 1 and {$width}."
+                );
+            }
+        }
+
         $set = array_flip($ids);
         for ($id = 1; $id <= $width; $id++) {
             $this->bits .= isset($set[$id]) ? '1' : '0';

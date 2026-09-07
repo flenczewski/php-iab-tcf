@@ -79,4 +79,38 @@ final class BitWriterReaderTest extends TestCase
         $this->expectException(\OutOfRangeException::class);
         $reader->readUint(1);
     }
+
+    public function testWriteIdSetRejectsIdAboveWidth(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\InvalidArgumentException::class);
+        $this->expectExceptionMessage('id 25');
+
+        (new BitWriter())->writeIdSet([1, 25], 24);
+    }
+
+    public function testWriteIdSetRejectsIdBelowOne(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\InvalidArgumentException::class);
+
+        (new BitWriter())->writeIdSet([0, 5], 24);
+    }
+
+    public function testWriteUintWithZeroWidthWritesNothing(): void
+    {
+        self::assertSame('', (new BitWriter())->writeUint(0, 0)->toBitString());
+    }
+
+    public function testWriteUintRejectsNonZeroValueInZeroWidth(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\InvalidArgumentException::class);
+
+        (new BitWriter())->writeUint(1, 0);
+    }
+
+    public function testWriteUintRejectsImpossibleWidth(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\InvalidArgumentException::class);
+
+        (new BitWriter())->writeUint(1, 64);
+    }
 }
