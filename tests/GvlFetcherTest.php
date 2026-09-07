@@ -66,7 +66,7 @@ final class GvlFetcherTest extends TestCase
 
     public function testThrowsWhenHttpClientFails(): void
     {
-        $fetcher = new GvlFetcher(static fn (string $url): false => false);
+        $fetcher = new GvlFetcher(static fn (string $url) => false);
 
         $this->expectException(\RuntimeException::class);
         $fetcher->fetchLatest();
