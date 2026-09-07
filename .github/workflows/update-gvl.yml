@@ -1,0 +1,42 @@
+name: Update bundled GVL
+
+on:
+  schedule:
+    - cron: '0 3 * * 1' # every Monday at 03:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  update-gvl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Refresh resources/vendor-list.json
+        run: composer update-gvl
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- resources/vendor-list.json; then
+            echo "No changes to the Global Vendor List — nothing to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add resources/vendor-list.json
+          git commit -m "chore: refresh bundled Global Vendor List
+
+Automated weekly refresh via .github/workflows/update-gvl.yml."
+          git push

@@ -1,0 +1,132 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$autoloadCandidates = [
+    __DIR__ . '/../vendor/autoload.php',   // running from a checkout of this package
+    __DIR__ . '/../../../autoload.php',    // installed as a dependency (vendor/flenczewski/php-iab-tcf/bin/iab-tcf)
+];
+
+foreach ($autoloadCandidates as $candidate) {
+    if (is_file($candidate)) {
+        require $candidate;
+        break;
+    }
+}
+
+if (!class_exists(Flenczewski\IabTcf\TcStringDecoder::class)) {
+    fwrite(STDERR, "Could not locate the Composer autoloader. Run `composer install` first.\n");
+    exit(1);
+}
+
+use Flenczewski\IabTcf\Gvl\GvlFetcher;
+use Flenczewski\IabTcf\TcStringDecoder;
+
+function usage(): string
+{
+    return <<<TXT
+    Usage:
+      iab-tcf decode <tc-string>     Decode a TC String and print it as JSON.
+      iab-tcf update-gvl [path]      Fetch the latest Global Vendor List and write the raw JSON to <path>
+                                      (default: resources/vendor-list.json).
+
+    TXT;
+}
+
+/** @return array<string,mixed> */
+function tcModelToArray(\Flenczewski\IabTcf\TcModel $model): array
+{
+    return [
+        'version' => 2,
+        'created' => $model->created?->format(DATE_ATOM),
+        'lastUpdated' => $model->lastUpdated?->format(DATE_ATOM),
+        'cmpId' => $model->cmpId,
+        'cmpVersion' => $model->cmpVersion,
+        'consentScreen' => $model->consentScreen,
+        'consentLanguage' => $model->consentLanguage,
+        'vendorListVersion' => $model->vendorListVersion,
+        'tcfPolicyVersion' => $model->tcfPolicyVersion,
+        'isServiceSpecific' => $model->isServiceSpecific,
+        'useNonStandardStacks' => $model->useNonStandardStacks,
+        'purposeOneTreatment' => $model->purposeOneTreatment,
+        'publisherCC' => $model->publisherCC,
+        'specialFeatureOptIns' => $model->specialFeatureOptIns,
+        'purposesConsent' => $model->purposesConsent,
+        'purposesLITransparency' => $model->purposesLITransparency,
+        'vendorConsents' => $model->vendorConsents,
+        'vendorLegitimateInterests' => $model->vendorLegitimateInterests,
+        'publisherRestrictions' => array_map(
+            static fn (\Flenczewski\IabTcf\PublisherRestriction $r): array => [
+                'purposeId' => $r->purposeId,
+                'type' => $r->type->name,
+                'vendorIds' => $r->vendorIds,
+            ],
+            $model->publisherRestrictions,
+        ),
+        'disclosedVendors' => $model->disclosedVendors,
+        'allowedVendors' => $model->allowedVendors,
+    ];
+}
+
+function runDecode(?string $tcString): int
+{
+    if ($tcString === null || $tcString === '') {
+        fwrite(STDERR, "Error: missing TC String argument.\n\n" . usage());
+
+        return 1;
+    }
+
+    try {
+        $model = TcStringDecoder::decode($tcString);
+    } catch (\Throwable $e) {
+        fwrite(STDERR, "Error: {$e->getMessage()}\n");
+
+        return 1;
+    }
+
+    echo json_encode(tcModelToArray($model), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
+
+    return 0;
+}
+
+function runUpdateGvl(?string $targetPath): int
+{
+    $target = $targetPath ?? dirname(__DIR__) . '/resources/vendor-list.json';
+
+    try {
+        $json = (new GvlFetcher())->fetchLatestRaw();
+    } catch (\Throwable $e) {
+        fwrite(STDERR, "Error fetching the Global Vendor List: {$e->getMessage()}\n");
+
+        return 1;
+    }
+
+    // Re-encode (rather than writing the raw response verbatim) so the file
+    // has stable, diff-friendly formatting regardless of how the server sent it.
+    $decoded = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
+    $formatted = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n";
+
+    if (file_put_contents($target, $formatted) === false) {
+        fwrite(STDERR, "Error: could not write to {$target}.\n");
+
+        return 1;
+    }
+
+    fwrite(STDOUT, "Wrote " . strlen($formatted) . " bytes to {$target} "
+        . "(vendorListVersion={$decoded['vendorListVersion']}).\n");
+
+    return 0;
+}
+
+$command = $argv[1] ?? null;
+
+exit(match ($command) {
+    'decode' => runDecode($argv[2] ?? null),
+    'update-gvl' => runUpdateGvl($argv[2] ?? null),
+    default => (function (): int {
+        fwrite(STDERR, usage());
+
+        return 1;
+    })(),
+});
