@@ -1,0 +1,27 @@
+{
+    "name": "flenczewski/php-iab-tcf",
+    "description": "Encode and decode IAB TCF v2.2 (GDPR Transparency & Consent Framework) TC Strings in PHP.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["gdpr", "iab", "tcf", "consent", "tc-string", "rodo"],
+    "require": {
+        "php": ">=8.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Flenczewski\\IabTcf\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Flenczewski\\IabTcf\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "minimum-stability": "stable"
+}
