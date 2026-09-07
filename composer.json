@@ -24,7 +24,7 @@
         "bin/iab-tcf"
     ],
     "scripts": {
-        "test": "phpunit",
+        "test": "tools/test.sh",
         "update-gvl": "bin/iab-tcf update-gvl"
     },
     "minimum-stability": "stable"
