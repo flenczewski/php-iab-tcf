@@ -6,9 +6,9 @@ namespace Flenczewski\IabTcf;
 
 /**
  * Encodes a TcModel into a TC String: a Core segment (segment 0, no
- * SegmentType prefix) optionally followed by Disclosed Vendors (segment
- * type 1) and Allowed Vendors (segment type 2), dot-separated and each
- * base64url-encoded.
+ * SegmentType prefix) followed by the Disclosed Vendors segment (segment
+ * type 1, mandatory as of TCF v2.3 — see README "TCF v2.3") and optionally
+ * Allowed Vendors (segment type 2), dot-separated and each base64url-encoded.
  */
 final class TcStringEncoder
 {

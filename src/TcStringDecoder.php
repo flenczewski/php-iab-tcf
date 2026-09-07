@@ -42,7 +42,10 @@ final class TcStringDecoder
         $vendorLegitimateInterests = RangeSection::decode($core);
         $publisherRestrictions = PublisherRestrictionsCodec::decode($core);
 
-        $disclosedVendors = null;
+        // Absent Disclosed Vendors segment is tolerated for pre-v2.3 strings
+        // and normalized to [] (v2.3 made this segment mandatory going
+        // forward, but decoding must stay backward-compatible).
+        $disclosedVendors = [];
         $allowedVendors = null;
 
         for ($i = 1; $i < count($segments); $i++) {

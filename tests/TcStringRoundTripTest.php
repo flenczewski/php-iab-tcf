@@ -34,10 +34,23 @@ final class TcStringRoundTripTest extends TestCase
         self::assertSame([], $decoded->vendorConsents);
         self::assertSame([], $decoded->vendorLegitimateInterests);
         self::assertSame([], $decoded->publisherRestrictions);
-        self::assertNull($decoded->disclosedVendors);
+        // Disclosed Vendors is mandatory as of TCF v2.3 — emitted by default (empty set here), not omitted.
+        self::assertSame([], $decoded->disclosedVendors);
         self::assertNull($decoded->allowedVendors);
-        // Core string only: no dots.
-        self::assertStringNotContainsString('.', $tcString);
+        // Core + Disclosed Vendors segments = 1 dot.
+        self::assertSame(1, substr_count($tcString, '.'));
+    }
+
+    public function testDisclosedVendorsSegmentCanBeExplicitlyOmittedForPreV23Compatibility(): void
+    {
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, disclosedVendors: null);
+
+        $tcString = TcStringEncoder::encode($model);
+        self::assertStringNotContainsString('.', $tcString, 'Explicit null must omit the Disclosed Vendors segment.');
+
+        // Decoding a string without the segment must not error, and normalizes to [].
+        $decoded = TcStringDecoder::decode($tcString);
+        self::assertSame([], $decoded->disclosedVendors);
     }
 
     public function testFullyPopulatedModelRoundTrip(): void
