@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf;
 
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
+
 /**
  * Encodes/decodes a 2-letter code (ISO 639-1 language or ISO 3166-1 country)
  * as used for ConsentLanguage and PublisherCC: 6 bits per letter, A=0..Z=25.
@@ -13,7 +15,7 @@ final class Alpha2Code
     public static function encode(string $code): string
     {
         if (!preg_match('/^[A-Za-z]{2}$/', $code)) {
-            throw new \InvalidArgumentException("Expected a 2-letter alphabetic code, got \"{$code}\".");
+            throw new InvalidArgumentException("Expected a 2-letter alphabetic code, got \"{$code}\".");
         }
 
         $code = strtoupper($code);

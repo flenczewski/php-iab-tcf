@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf;
 
+use Flenczewski\IabTcf\Exception\OutOfRangeException;
+
 /** Reads fixed-width, big-endian (MSB-first) fields from a bit buffer produced by BitWriter. */
 final class BitReader
 {
@@ -44,7 +46,7 @@ final class BitReader
     public function readBits(int $numBits): string
     {
         if ($numBits < 0 || $this->pos + $numBits > strlen($this->bits)) {
-            throw new \OutOfRangeException('Attempted to read past the end of the bit buffer.');
+            throw new OutOfRangeException('Attempted to read past the end of the bit buffer.');
         }
 
         $chunk = substr($this->bits, $this->pos, $numBits);

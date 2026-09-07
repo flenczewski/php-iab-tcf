@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf;
 
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
+
 /**
  * Converts a raw '0'/'1' bit string to/from the URL-safe, unpadded base64
  * encoding used for each dot-separated segment of a TC String.
@@ -33,7 +35,7 @@ final class Base64Url
 
         $bytes = base64_decode($base64, true);
         if ($bytes === false) {
-            throw new \InvalidArgumentException("Invalid base64url segment: \"{$base64Url}\".");
+            throw new InvalidArgumentException("Invalid base64url segment: \"{$base64Url}\".");
         }
 
         $bits = '';

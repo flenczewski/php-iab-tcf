@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf\Gvl;
 
+use Flenczewski\IabTcf\Exception\GvlException;
+
 /**
  * Fetches the Global Vendor List over the network. Prefer {@see Gvl::bundled()}
  * for most use cases (fast, offline, no network dependency at runtime) — use
@@ -60,7 +62,7 @@ final class GvlFetcher
     {
         $result = ($this->httpGet)($url);
         if ($result === false) {
-            throw new \RuntimeException("Failed to fetch the Global Vendor List from {$url}.");
+            throw new GvlException("Failed to fetch the Global Vendor List from {$url}.");
         }
 
         return $result;

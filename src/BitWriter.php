@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf;
 
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
+
 /**
  * Appends fixed-width, big-endian (MSB-first) fields to an in-memory bit buffer,
  * as required by the IAB TCF v2 Consent String and Vendor List Formats spec.
@@ -15,10 +17,10 @@ final class BitWriter
     public function writeUint(int $value, int $numBits): static
     {
         if ($value < 0) {
-            throw new \InvalidArgumentException("Value must be >= 0, got {$value}.");
+            throw new InvalidArgumentException("Value must be >= 0, got {$value}.");
         }
         if ($numBits < 63 && $value >= (1 << $numBits)) {
-            throw new \InvalidArgumentException("Value {$value} does not fit in {$numBits} bits.");
+            throw new InvalidArgumentException("Value {$value} does not fit in {$numBits} bits.");
         }
 
         $this->bits .= str_pad(decbin($value), $numBits, '0', STR_PAD_LEFT);
