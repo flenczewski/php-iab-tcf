@@ -77,4 +77,18 @@ final class RangeSectionTest extends TestCase
         $bits = RangeSection::encodeRangeList($ids);
         self::assertSame($ids, RangeSection::decodeRangeList(new BitReader($bits)));
     }
+
+    public function testFallsBackToBitfieldWhenRangeListWouldOverflowNumEntriesField(): void
+    {
+        // Every other id from 1..10000 produces 5000 single-id ranges, which
+        // does not fit in the 12-bit NumEntries field (max 4095) — encode()
+        // must fall back to the bitfield representation instead of crashing.
+        $ids = [];
+        for ($id = 1; $id <= 10000; $id += 2) {
+            $ids[] = $id;
+        }
+
+        $bits = RangeSection::encode($ids);
+        self::assertSame($ids, RangeSection::decode(new BitReader($bits)));
+    }
 }

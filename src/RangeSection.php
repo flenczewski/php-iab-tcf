@@ -14,6 +14,9 @@ namespace Flenczewski\IabTcf;
  */
 final class RangeSection
 {
+    /** NumEntries is a 12-bit field — a range list beyond this many entries cannot be encoded. */
+    private const MAX_RANGE_ENTRIES = 0xFFF;
+
     /** @param int[] $vendorIds */
     public static function encode(array $vendorIds): string
     {
@@ -21,8 +24,14 @@ final class RangeSection
         $maxVendorId = $vendorIds === [] ? 0 : max($vendorIds);
 
         $bitfieldBits = self::encodeBitfield($vendorIds, $maxVendorId);
-        $rangeBits = self::encodeRangeList($vendorIds);
-        $useRange = strlen($rangeBits) < strlen($bitfieldBits);
+        $entries = self::toRanges($vendorIds);
+
+        $useRange = false;
+        $rangeBits = '';
+        if (count($entries) <= self::MAX_RANGE_ENTRIES) {
+            $rangeBits = self::buildRangeListBits($entries);
+            $useRange = strlen($rangeBits) < strlen($bitfieldBits);
+        }
 
         $writer = new BitWriter();
         $writer->writeUint($maxVendorId, 16);
@@ -53,8 +62,12 @@ final class RangeSection
      */
     public static function encodeRangeList(array $vendorIds): string
     {
-        $entries = self::toRanges(self::normalize($vendorIds));
+        return self::buildRangeListBits(self::toRanges(self::normalize($vendorIds)));
+    }
 
+    /** @param array<int, array{0: int, 1: int}> $entries */
+    private static function buildRangeListBits(array $entries): string
+    {
         $writer = new BitWriter();
         $writer->writeUint(count($entries), 12);
         foreach ($entries as [$start, $end]) {

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf\Tests;
 
+use Flenczewski\IabTcf\PublisherRestriction;
+use Flenczewski\IabTcf\RestrictionType;
 use Flenczewski\IabTcf\TcModel;
 use Flenczewski\IabTcf\TcStringEncoder;
 use PHPUnit\Framework\TestCase;
@@ -42,6 +44,25 @@ final class CliTest extends TestCase
         self::assertSame(42, $decoded['cmpId']);
         self::assertSame(3, $decoded['cmpVersion']);
         self::assertSame([1, 2, 3], $decoded['purposesConsent']);
+    }
+
+    public function testDecodeIncludesPublisherRestrictions(): void
+    {
+        $model = new TcModel(
+            cmpId: 42,
+            cmpVersion: 3,
+            publisherRestrictions: [new PublisherRestriction(4, RestrictionType::REQUIRE_CONSENT, [7, 8])],
+        );
+        $tcString = TcStringEncoder::encode($model);
+
+        [$exitCode, $stdout, $stderr] = $this->runCli(['decode', $tcString]);
+
+        self::assertSame(0, $exitCode, "stderr: {$stderr}");
+        $decoded = json_decode($stdout, true, flags: JSON_THROW_ON_ERROR);
+        self::assertSame(
+            [['purposeId' => 4, 'type' => 'REQUIRE_CONSENT', 'vendorIds' => [7, 8]]],
+            $decoded['publisherRestrictions'],
+        );
     }
 
     public function testDecodeWithMissingArgumentFailsCleanly(): void

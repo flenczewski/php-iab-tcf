@@ -56,6 +56,14 @@ function tcModelToArray(\Flenczewski\IabTcf\TcModel $model): array
         'purposesLITransparency' => $model->purposesLITransparency,
         'vendorConsents' => $model->vendorConsents,
         'vendorLegitimateInterests' => $model->vendorLegitimateInterests,
+        'publisherRestrictions' => array_map(
+            static fn (\Flenczewski\IabTcf\PublisherRestriction $r): array => [
+                'purposeId' => $r->purposeId,
+                'type' => $r->type->name,
+                'vendorIds' => $r->vendorIds,
+            ],
+            $model->publisherRestrictions,
+        ),
         'disclosedVendors' => $model->disclosedVendors,
         'allowedVendors' => $model->allowedVendors,
     ];
