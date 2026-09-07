@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf;
 
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
+
 /**
  * Plain data object representing the fields of a TCF v2 Core String, plus the
  * Disclosed/Allowed Vendors segments. See TcStringEncoder/Decoder.
@@ -53,5 +55,66 @@ final class TcModel
         public readonly ?\DateTimeImmutable $created = null,
         public readonly ?\DateTimeImmutable $lastUpdated = null,
     ) {
+        self::assertInRange('cmpId', $cmpId, 0, Spec::MAX_CMP_ID);
+        self::assertInRange('cmpVersion', $cmpVersion, 0, Spec::MAX_CMP_VERSION);
+        self::assertInRange('consentScreen', $consentScreen, 0, Spec::MAX_CONSENT_SCREEN);
+        self::assertInRange('vendorListVersion', $vendorListVersion, 0, Spec::MAX_VENDOR_LIST_VERSION);
+        self::assertInRange('tcfPolicyVersion', $tcfPolicyVersion, 0, Spec::MAX_TCF_POLICY_VERSION);
+
+        foreach (['consentLanguage' => $consentLanguage, 'publisherCC' => $publisherCC] as $field => $code) {
+            if (!Alpha2Code::isValid($code)) {
+                throw new InvalidArgumentException(
+                    "{$field} must be a 2-letter alphabetic code, got \"{$code}\"."
+                );
+            }
+        }
+
+        self::assertIdSet('specialFeatureOptIns', $specialFeatureOptIns, 1, Spec::MAX_SPECIAL_FEATURE_ID);
+        self::assertIdSet('purposesConsent', $purposesConsent, 1, Spec::MAX_PURPOSE_ID);
+        self::assertIdSet('purposesLITransparency', $purposesLITransparency, 1, Spec::MAX_PURPOSE_ID);
+        self::assertIdSet('vendorConsents', $vendorConsents, Spec::MIN_VENDOR_ID, Spec::MAX_VENDOR_ID);
+        self::assertIdSet(
+            'vendorLegitimateInterests',
+            $vendorLegitimateInterests,
+            Spec::MIN_VENDOR_ID,
+            Spec::MAX_VENDOR_ID
+        );
+
+        if ($disclosedVendors !== null) {
+            self::assertIdSet('disclosedVendors', $disclosedVendors, Spec::MIN_VENDOR_ID, Spec::MAX_VENDOR_ID);
+        }
+        if ($allowedVendors !== null) {
+            self::assertIdSet('allowedVendors', $allowedVendors, Spec::MIN_VENDOR_ID, Spec::MAX_VENDOR_ID);
+        }
+
+        foreach ($publisherRestrictions as $restriction) {
+            if (!$restriction instanceof PublisherRestriction) {
+                throw new InvalidArgumentException(
+                    'publisherRestrictions must contain only PublisherRestriction instances.'
+                );
+            }
+        }
+    }
+
+    private static function assertInRange(string $field, int $value, int $min, int $max): void
+    {
+        if ($value < $min || $value > $max) {
+            throw new InvalidArgumentException("{$field} must be between {$min} and {$max}, got {$value}.");
+        }
+    }
+
+    /** @param int[] $ids */
+    private static function assertIdSet(string $field, array $ids, int $min, int $max): void
+    {
+        foreach ($ids as $id) {
+            if (!is_int($id)) {
+                throw new InvalidArgumentException("{$field} must contain only integers.");
+            }
+            if ($id < $min || $id > $max) {
+                throw new InvalidArgumentException(
+                    "{$field} contains id {$id}, which is outside the valid range {$min}..{$max}."
+                );
+            }
+        }
     }
 }

@@ -12,9 +12,14 @@ use Flenczewski\IabTcf\Exception\InvalidArgumentException;
  */
 final class Alpha2Code
 {
+    public static function isValid(string $code): bool
+    {
+        return preg_match('/^[A-Za-z]{2}$/', $code) === 1;
+    }
+
     public static function encode(string $code): string
     {
-        if (!preg_match('/^[A-Za-z]{2}$/', $code)) {
+        if (!self::isValid($code)) {
             throw new InvalidArgumentException("Expected a 2-letter alphabetic code, got \"{$code}\".");
         }
 

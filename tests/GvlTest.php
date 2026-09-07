@@ -99,12 +99,12 @@ final class GvlTest extends TestCase
     public function testValidateConsentsFlagsUnknownVendor(): void
     {
         $gvl = Gvl::fromJson(self::fixtureJson());
-        $model = new TcModel(cmpId: 1, cmpVersion: 1, vendorConsents: [1, 99999]);
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, vendorConsents: [1, 65535]);
 
         $problems = $gvl->validateConsents($model);
 
         self::assertCount(1, $problems);
-        self::assertStringContainsString('99999', $problems[0]);
+        self::assertStringContainsString('65535', $problems[0]);
         self::assertStringContainsString('does not exist', $problems[0]);
     }
 
