@@ -19,7 +19,15 @@ Upgrading from 1.x? See [UPGRADE-2.0.md](UPGRADE-2.0.md).
   Range entries are now validated (`start >= 1`, `end >= start`, `end <= 65535`)
   and a running total is checked *before* expansion, which bounds the work
   rather than only the result. The same payload is now rejected in 0.0004 s
-  with a 0.10 MB delta. **All 1.x versions are affected; upgrading is the fix.**
+  with a 0.10 MB delta.
+
+  The budget is also **shared across the whole Publisher Restrictions
+  section**. Each range list is capped individually, but `NumPubRestrictions`
+  is a 12-bit field, so a per-list cap alone could be multiplied by up to 4095:
+  1 769 characters expanded to 13 107 000 ids in 2.73 s and 201 MB. With the
+  shared budget that payload is rejected in 0.05 s with a 0.05 MB delta.
+
+  **All 1.x versions are affected; upgrading is the fix.**
 
 ### Added
 

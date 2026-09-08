@@ -21,6 +21,7 @@ if (!class_exists(Flenczewski\IabTcf\TcStringDecoder::class)) {
 }
 
 use Flenczewski\IabTcf\Exception\IabTcfException;
+use Flenczewski\IabTcf\Gvl\Gvl;
 use Flenczewski\IabTcf\Gvl\GvlFetcher;
 use Flenczewski\IabTcf\TcStringDecoder;
 
@@ -62,15 +63,21 @@ function runUpdateGvl(?string $targetPath): int
 
     try {
         $json = (new GvlFetcher())->fetchLatestRaw();
-    } catch (IabTcfException $e) {
+
+        // Parse through Gvl so a 200 response carrying an HTML error page, or
+        // any other payload that is not a vendor list, is rejected here rather
+        // than being written to disk and surfacing as an uncaught JsonException.
+        Gvl::fromJson($json);
+
+        // Re-encode (rather than writing the raw response verbatim) so the file
+        // has stable, diff-friendly formatting regardless of how the server sent it.
+        $decoded = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
+    } catch (IabTcfException | JsonException $e) {
         fwrite(STDERR, "Error fetching the Global Vendor List: {$e->getMessage()}\n");
 
         return 1;
     }
 
-    // Re-encode (rather than writing the raw response verbatim) so the file
-    // has stable, diff-friendly formatting regardless of how the server sent it.
-    $decoded = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
     $formatted = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n";
 
     if (file_put_contents($target, $formatted) === false) {

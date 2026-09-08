@@ -43,12 +43,18 @@ final class PublisherRestrictionsCodec
         $numRestrictions = $reader->readUint(12);
         $restrictions = [];
 
+        // Each range list is individually capped, but NumPubRestrictions is a
+        // 12-bit field — so the budget has to be shared across the whole
+        // section, otherwise 4095 restrictions multiply the per-list cap.
+        $remainingIds = Spec::MAX_PUBLISHER_RESTRICTION_VENDOR_IDS;
+
         for ($i = 0; $i < $numRestrictions; $i++) {
             $purposeId = $reader->readUint(6);
             $typeValue = $reader->readUint(2);
             $type = RestrictionType::tryFrom($typeValue)
                 ?? throw new InvalidTcStringException("Unknown publisher restriction type {$typeValue}.");
-            $vendorIds = RangeSection::decodeRangeList($reader);
+            $vendorIds = RangeSection::decodeRangeList($reader, $remainingIds);
+            $remainingIds -= count($vendorIds);
             $restrictions[] = new PublisherRestriction($purposeId, $type, $vendorIds);
         }
 

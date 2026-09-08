@@ -36,4 +36,20 @@ final class Spec
 
     /** NumEntries in a range list is a 12-bit field. */
     public const MAX_RANGE_ENTRIES = 4095;
+
+    /**
+     * Ceiling on the total vendor ids the Publisher Restrictions section may
+     * expand to across ALL of its restrictions combined.
+     *
+     * Each individual range list is already capped at MAX_VENDOR_ID, but
+     * NumPubRestrictions is a 12-bit field, so without a cumulative bound an
+     * attacker can multiply that cap by 4095 and exhaust memory — the same
+     * amplification the per-list bound exists to prevent.
+     *
+     * Four times the vendor space is far beyond any real signal: the largest
+     * third-party string in our conformance suite expands to 70 ids in total,
+     * and the entire Global Vendor List is on the order of 1200 vendors. It
+     * caps this section's decode at roughly 10 MB.
+     */
+    public const MAX_PUBLISHER_RESTRICTION_VENDOR_IDS = 4 * self::MAX_VENDOR_ID;
 }

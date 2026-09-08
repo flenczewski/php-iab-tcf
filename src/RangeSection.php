@@ -104,9 +104,13 @@ final class RangeSection
      * Spec::MAX_VENDOR_ID of them. Without that check a few KB of attacker
      * input expands to hundreds of millions of array elements.
      *
+     * @param int $maxIds ceiling on how many ids this call may expand to.
+     *                    Callers that decode several range lists from one
+     *                    string (see PublisherRestrictionsCodec) pass their
+     *                    remaining budget so the totals cannot be multiplied.
      * @return int[]
      */
-    public static function decodeRangeList(BitReader $reader): array
+    public static function decodeRangeList(BitReader $reader, int $maxIds = Spec::MAX_VENDOR_ID): array
     {
         $numEntries = $reader->readUint(12);
         $entries = [];
@@ -134,10 +138,10 @@ final class RangeSection
             }
 
             $total += $end - $start + 1;
-            if ($total > Spec::MAX_VENDOR_ID) {
+            if ($total > $maxIds) {
                 throw new InvalidTcStringException(
-                    'Range list expands to more than ' . Spec::MAX_VENDOR_ID
-                    . ' vendor ids, which no valid TC String can contain.'
+                    "Range list expands to more than {$maxIds} vendor ids, "
+                    . 'which no valid TC String can contain.'
                 );
             }
 
