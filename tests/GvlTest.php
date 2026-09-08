@@ -138,4 +138,32 @@ final class GvlTest extends TestCase
         self::assertGreaterThan(0, $gvl->vendorListVersion);
         self::assertGreaterThan(100, count($gvl->vendors));
     }
+
+    /** @return iterable<string, array{string}> */
+    public static function malformedPayloads(): iterable
+    {
+        yield 'null literal' => ['null'];
+        yield 'empty array' => ['[]'];
+        yield 'empty object' => ['{}'];
+        yield 'scalar' => ['42'];
+        yield 'not json at all' => ['<html>404</html>'];
+        yield 'missing lastUpdated' => ['{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":4,"vendors":{}}'];
+        yield 'empty lastUpdated' => ['{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":4,"lastUpdated":"","vendors":{}}'];
+        yield 'unparseable lastUpdated' => ['{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":4,"lastUpdated":"not-a-date","vendors":{}}'];
+        yield 'vendors not an object' => ['{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":4,"lastUpdated":"2026-01-01T00:00:00Z","vendors":7}'];
+        yield 'vendor without a name' => ['{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":4,"lastUpdated":"2026-01-01T00:00:00Z","vendors":{"1":{"id":1}}}'];
+    }
+
+    /** @dataProvider malformedPayloads */
+    public function testFromJsonRejectsMalformedPayloads(string $json): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\GvlException::class);
+
+        Gvl::fromJson($json);
+    }
+
+    public function testBundledIsMemoized(): void
+    {
+        self::assertSame(Gvl::bundled(), Gvl::bundled());
+    }
 }

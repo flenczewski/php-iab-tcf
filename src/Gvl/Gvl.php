@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf\Gvl;
 
+use Flenczewski\IabTcf\Exception\GvlException;
 use Flenczewski\IabTcf\TcModel;
 
 /**
@@ -14,6 +15,8 @@ use Flenczewski\IabTcf\TcModel;
  */
 final class Gvl
 {
+    private static ?self $bundled = null;
+
     /** @param array<int,Vendor> $vendors keyed by vendor id */
     public function __construct(
         public readonly int $gvlSpecificationVersion,
@@ -33,15 +36,51 @@ final class Gvl
      */
     public static function bundled(): self
     {
-        return self::fromJson(file_get_contents(__DIR__ . '/../../resources/vendor-list.json'));
+        if (self::$bundled instanceof self) {
+            return self::$bundled;
+        }
+
+        $path = __DIR__ . '/../../resources/vendor-list.json';
+        $json = @file_get_contents($path);
+        if ($json === false) {
+            throw new GvlException("Could not read the bundled Global Vendor List at {$path}.");
+        }
+
+        return self::$bundled = self::fromJson($json);
     }
 
     public static function fromJson(string $json): self
     {
-        $data = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
+        try {
+            $data = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            throw new GvlException("Global Vendor List is not valid JSON: {$e->getMessage()}", 0, $e);
+        }
+
+        if (!is_array($data) || array_is_list($data)) {
+            throw new GvlException(
+                'Global Vendor List must be a JSON object, got ' . get_debug_type($data) . '.'
+            );
+        }
+
+        $required = ['gvlSpecificationVersion', 'vendorListVersion', 'tcfPolicyVersion', 'lastUpdated', 'vendors'];
+        foreach ($required as $key) {
+            if (!array_key_exists($key, $data)) {
+                throw new GvlException("Global Vendor List is missing the required \"{$key}\" field.");
+            }
+        }
+
+        if (!is_array($data['vendors'])) {
+            throw new GvlException(
+                'Global Vendor List "vendors" must be an object, got ' . get_debug_type($data['vendors']) . '.'
+            );
+        }
 
         $vendors = [];
-        foreach ($data['vendors'] ?? [] as $vendorData) {
+        foreach ($data['vendors'] as $vendorData) {
+            if (!is_array($vendorData)) {
+                throw new GvlException('Every entry in "vendors" must be an object.');
+            }
             $vendor = Vendor::fromArray($vendorData);
             $vendors[$vendor->id] = $vendor;
         }
@@ -50,9 +89,24 @@ final class Gvl
             gvlSpecificationVersion: (int) $data['gvlSpecificationVersion'],
             vendorListVersion: (int) $data['vendorListVersion'],
             tcfPolicyVersion: (int) $data['tcfPolicyVersion'],
-            lastUpdated: new \DateTimeImmutable((string) $data['lastUpdated']),
+            lastUpdated: self::parseLastUpdated($data['lastUpdated']),
             vendors: $vendors,
         );
+    }
+
+    private static function parseLastUpdated(mixed $value): \DateTimeImmutable
+    {
+        // new DateTimeImmutable('') silently means "now", which would make a
+        // corrupt list look freshly updated — reject empty input explicitly.
+        if (!is_string($value) || trim($value) === '') {
+            throw new GvlException('Global Vendor List "lastUpdated" must be a non-empty date string.');
+        }
+
+        try {
+            return new \DateTimeImmutable($value);
+        } catch (\Exception $e) {
+            throw new GvlException("Global Vendor List \"lastUpdated\" is not a valid date: \"{$value}\".", 0, $e);
+        }
     }
 
     /** @return Vendor[] */
@@ -100,7 +154,11 @@ final class Gvl
         ));
     }
 
-    /** Returns a new Gvl containing only the given vendor ids. */
+    /**
+     * Returns a new Gvl containing only the given vendor ids.
+     *
+     * @param int[] $vendorIds
+     */
     public function narrowVendorsTo(array $vendorIds): self
     {
         $wanted = array_flip($vendorIds);

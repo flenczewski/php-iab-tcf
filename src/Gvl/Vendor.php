@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf\Gvl;
 
+use Flenczewski\IabTcf\Exception\GvlException;
+
 /** A single vendor entry from the Global Vendor List, limited to fields relevant to consent validation. */
 final class Vendor
 {
@@ -30,15 +32,37 @@ final class Vendor
     /** @param array<string,mixed> $data one entry from the GVL's "vendors" map */
     public static function fromArray(array $data): self
     {
+        foreach (['id', 'name'] as $required) {
+            if (!isset($data[$required])) {
+                throw new GvlException("Vendor entry is missing the required \"{$required}\" field.");
+            }
+        }
+
         return new self(
             id: (int) $data['id'],
             name: (string) $data['name'],
-            purposes: array_map(intval(...), $data['purposes'] ?? []),
-            legIntPurposes: array_map(intval(...), $data['legIntPurposes'] ?? []),
-            flexiblePurposes: array_map(intval(...), $data['flexiblePurposes'] ?? []),
-            specialPurposes: array_map(intval(...), $data['specialPurposes'] ?? []),
-            features: array_map(intval(...), $data['features'] ?? []),
-            specialFeatures: array_map(intval(...), $data['specialFeatures'] ?? []),
+            purposes: self::intList($data, 'purposes'),
+            legIntPurposes: self::intList($data, 'legIntPurposes'),
+            flexiblePurposes: self::intList($data, 'flexiblePurposes'),
+            specialPurposes: self::intList($data, 'specialPurposes'),
+            features: self::intList($data, 'features'),
+            specialFeatures: self::intList($data, 'specialFeatures'),
         );
+    }
+
+    /**
+     * @param array<string,mixed> $data
+     * @return int[]
+     */
+    private static function intList(array $data, string $key): array
+    {
+        $value = $data[$key] ?? [];
+        if (!is_array($value)) {
+            throw new GvlException(
+                "Vendor field \"{$key}\" must be an array, got " . get_debug_type($value) . '.'
+            );
+        }
+
+        return array_values(array_map(intval(...), $value));
     }
 }
