@@ -75,9 +75,27 @@ final class TcStringDecoder
         $disclosedVendors = null;
         $allowedVendors = null;
 
+        if (count($segments) > Spec::MAX_SEGMENTS) {
+            throw new InvalidTcStringException(sprintf(
+                'TC String has %d segments; a valid one has at most %d (core, plus at most one each of '
+                . 'Disclosed Vendors, Allowed Vendors and Publisher TC).',
+                count($segments),
+                Spec::MAX_SEGMENTS,
+            ));
+        }
+
+        $seenSegmentTypes = [];
         for ($i = 1; $i < count($segments); $i++) {
             $reader = new BitReader(Base64Url::decodeToBits($segments[$i]));
             $segmentType = $reader->readUint(3);
+
+            // Each type may appear once. Repeats used to silently overwrite the
+            // previous value, and let a caller multiply the decode cost of a
+            // vendor section by the number of times they repeated it.
+            if (isset($seenSegmentTypes[$segmentType])) {
+                throw new InvalidTcStringException("TC String repeats segment type {$segmentType}.");
+            }
+            $seenSegmentTypes[$segmentType] = true;
 
             match ($segmentType) {
                 self::SEGMENT_TYPE_DISCLOSED_VENDORS => $disclosedVendors = RangeSection::decode($reader),

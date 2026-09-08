@@ -52,4 +52,15 @@ final class Spec
      * caps this section's decode at roughly 10 MB.
      */
     public const MAX_PUBLISHER_RESTRICTION_VENDOR_IDS = 4 * self::MAX_VENDOR_ID;
+
+    /**
+     * A TC String has a Core segment plus at most one each of Disclosed
+     * Vendors (1), Allowed Vendors (2) and Publisher TC (3).
+     *
+     * The count is bounded, and each type may appear only once, because the
+     * decoder does real work per segment: without both rules a string can
+     * repeat a vendor segment thousands of times and multiply the per-segment
+     * decode cost without limit.
+     */
+    public const MAX_SEGMENTS = 4;
 }

@@ -120,4 +120,69 @@ final class MalformedInputTest extends TestCase
         self::assertSame([5, 6, 7, 8, 9], $restrictions[0]->vendorIds);
         self::assertSame([40, 41, 42, 43, 44], $restrictions[1]->vendorIds);
     }
+
+    /** A Disclosed Vendors segment claiming the entire 1..65535 vendor range. */
+    private static function fullRangeDisclosedVendorsSegment(): string
+    {
+        return (new BitWriter())
+            ->writeUint(1, 3)       // segment type: Disclosed Vendors
+            ->writeUint(65535, 16)  // MaxVendorId
+            ->writeBool(true)       // IsRangeEncoding
+            ->writeUint(1, 12)      // NumEntries
+            ->writeBool(true)->writeUint(1, 16)->writeUint(65535, 16)
+            ->toBase64Url();
+    }
+
+    /**
+     * Regression test for the segment-count form of the amplification.
+     *
+     * Each vendor section is bounded on its own, but the decoder looped over
+     * however many dot-separated segments the input carried, giving every one
+     * of them a fresh budget. Before the fix, 1000 repeated segments — 13,044
+     * characters — burned 16.57s of CPU. Memory stayed flat, so this was a
+     * CPU-exhaustion DoS rather than a memory one.
+     */
+    public function testRepeatedSegmentsCannotMultiplyTheDecodeCost(): void
+    {
+        $core = TcStringEncoder::encode(new TcModel(cmpId: 1, cmpVersion: 1, disclosedVendors: null));
+        $tcString = $core . str_repeat('.' . self::fullRangeDisclosedVendorsSegment(), 1000);
+
+        $start = microtime(true);
+
+        try {
+            TcStringDecoder::decode($tcString);
+            self::fail('Expected a string with 1000 segments to be rejected.');
+        } catch (InvalidTcStringException) {
+            // expected
+        }
+
+        self::assertLessThan(0.5, microtime(true) - $start, 'Rejection must not scale with segment count.');
+    }
+
+    public function testARepeatedSegmentTypeIsRejectedRatherThanSilentlyOverwriting(): void
+    {
+        $core = TcStringEncoder::encode(new TcModel(cmpId: 1, cmpVersion: 1, disclosedVendors: null));
+        $segment = self::fullRangeDisclosedVendorsSegment();
+
+        $this->expectException(InvalidTcStringException::class);
+        $this->expectExceptionMessage('repeats segment type 1');
+
+        TcStringDecoder::decode($core . '.' . $segment . '.' . $segment);
+    }
+
+    public function testAllThreeOptionalSegmentsTogetherStillDecode(): void
+    {
+        $model = new TcModel(
+            cmpId: 300,
+            cmpVersion: 1,
+            vendorConsents: [1, 2, 500],
+            disclosedVendors: [1, 2, 500],
+            allowedVendors: [3, 4],
+        );
+
+        $decoded = TcStringDecoder::decode(TcStringEncoder::encode($model));
+
+        self::assertSame([1, 2, 500], $decoded->disclosedVendors);
+        self::assertSame([3, 4], $decoded->allowedVendors);
+    }
 }

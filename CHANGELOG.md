@@ -27,6 +27,12 @@ Upgrading from 1.x? See [UPGRADE-2.0.md](UPGRADE-2.0.md).
   1 769 characters expanded to 13 107 000 ids in 2.73 s and 201 MB. With the
   shared budget that payload is rejected in 0.05 s with a 0.05 MB delta.
 
+  The same amplification existed a third way: the decoder looped over however
+  many dot-separated segments the input carried, giving each a fresh budget.
+  1 000 repeated Disclosed Vendors segments — 13 044 characters — burned 16.57 s
+  of CPU at flat memory. A TC String now carries at most four segments and may
+  not repeat a segment type, which is what the specification allows anyway.
+
   **All 1.x versions are affected; upgrading is the fix.**
 
 ### Added
@@ -56,6 +62,8 @@ Upgrading from 1.x? See [UPGRADE-2.0.md](UPGRADE-2.0.md).
 - **`GvlFetcher::__construct()` takes `?HttpClient`** instead of a callable.
 - `decodeRangeList()` returns a sorted, de-duplicated list, matching what the
   encoder produces.
+- A repeated segment type is now rejected instead of silently overwriting the
+  earlier one.
 - Timestamps truncate toward the past instead of rounding, so a `Created` stamp
   can never land after the moment it describes.
 - CI now covers PHP 8.1 through 8.5, runs PHPStan at level `max`, enforces

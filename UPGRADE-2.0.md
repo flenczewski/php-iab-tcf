@@ -92,7 +92,21 @@ if ($model->disclosedVendors === null) { /* no segment in the string */ }
 if ($model->disclosedVendors === []) { /* segment present, no vendors */ }
 ```
 
-## 5. `GvlFetcher` takes an `HttpClient`, not a callable
+## 5. Malformed segment layouts are rejected
+
+**Affects you if** you decode strings from a source that emits duplicate or
+excessive segments.
+
+A TC String may now carry at most four segments (core, plus at most one each of
+Disclosed Vendors, Allowed Vendors and Publisher TC), and may not repeat a
+segment type. Previously a repeated segment silently overwrote the earlier one,
+and an arbitrary number of them was accepted — which let a caller multiply the
+decoder's work without bound.
+
+Conformant strings are unaffected; the specification never permitted either
+shape.
+
+## 6. `GvlFetcher` takes an `HttpClient`, not a callable
 
 **Affects you if** you injected a callable, most likely in tests.
 
@@ -127,7 +141,7 @@ $fetcher = new GvlFetcher(new Psr18HttpClient($psr18Client, $psr17RequestFactory
 `psr/http-client` and `psr/http-factory` are *suggested*, not required — this
 package still has no runtime dependencies beyond PHP and `ext-json`.
 
-## 6. `Gvl::fromJson()` rejects malformed payloads
+## 7. `Gvl::fromJson()` rejects malformed payloads
 
 **Affects you if** you feed it anything that might not be a real vendor list.
 
