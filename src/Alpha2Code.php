@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Flenczewski\IabTcf;
 
 use Flenczewski\IabTcf\Exception\InvalidArgumentException;
+use Flenczewski\IabTcf\Exception\InvalidTcStringException;
 
 /**
  * Encodes/decodes a 2-letter code (ISO 639-1 language or ISO 3166-1 country)
@@ -33,9 +34,16 @@ final class Alpha2Code
 
     public static function decode(BitReader $reader): string
     {
-        $first = $reader->readUint(6);
-        $second = $reader->readUint(6);
+        $letters = '';
+        foreach ([$reader->readUint(6), $reader->readUint(6)] as $position => $value) {
+            if ($value > 25) {
+                throw new InvalidTcStringException(
+                    "Letter {$position} of a 2-letter code decoded to {$value}; only 0..25 (A..Z) are valid."
+                );
+            }
+            $letters .= chr(ord('A') + $value);
+        }
 
-        return chr(ord('A') + $first) . chr(ord('A') + $second);
+        return $letters;
     }
 }

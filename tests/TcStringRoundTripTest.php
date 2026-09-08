@@ -144,4 +144,101 @@ final class TcStringRoundTripTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         TcStringDecoder::decode($tcString);
     }
+
+    public function testEmptyStringIsRejectedAsAnInvalidTcString(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\InvalidTcStringException::class);
+
+        TcStringDecoder::decode('');
+    }
+
+    public function testTruncatedStringIsRejectedAsAnInvalidTcString(): void
+    {
+        $full = TcStringEncoder::encode(new TcModel(cmpId: 1, cmpVersion: 1));
+
+        $this->expectException(\Flenczewski\IabTcf\Exception\InvalidTcStringException::class);
+
+        TcStringDecoder::decode(substr($full, 0, 5));
+    }
+
+    public function testNonBase64InputIsRejectedAsAnInvalidTcString(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\InvalidTcStringException::class);
+
+        TcStringDecoder::decode('!!!!not-base64!!!!');
+    }
+
+    public function testWrappedFailuresKeepTheirOriginalCause(): void
+    {
+        try {
+            TcStringDecoder::decode('!!!!not-base64!!!!');
+            self::fail('Expected an InvalidTcStringException.');
+        } catch (\Flenczewski\IabTcf\Exception\InvalidTcStringException $e) {
+            self::assertInstanceOf(
+                \Flenczewski\IabTcf\Exception\IabTcfException::class,
+                $e->getPrevious(),
+                'The underlying cause must be preserved for debugging.'
+            );
+        }
+    }
+
+    public function testEmptyStringFailureNeedsNoPreviousCause(): void
+    {
+        // The empty-string branch throws directly — there is no lower-level
+        // cause to wrap, so this case is asserted separately from
+        // testWrappedFailuresKeepTheirOriginalCause().
+        $this->expectException(\Flenczewski\IabTcf\Exception\InvalidTcStringException::class);
+
+        TcStringDecoder::decode('');
+    }
+
+    public function testAlpha2CodeRejectsNonLetterBitPatterns(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\InvalidTcStringException::class);
+
+        \Flenczewski\IabTcf\Alpha2Code::decode(new \Flenczewski\IabTcf\BitReader('111111111111'));
+    }
+
+    public function testMalformedPublisherRestrictionPurposeIdIsFunneledIntoInvalidTcString(): void
+    {
+        // Hand-craft a minimal core segment ending right after a publisher
+        // restriction with purposeId=0 (invalid: PublisherRestriction requires 1..24),
+        // which PublisherRestriction's constructor rejects with the package's
+        // generic InvalidArgumentException. TcStringDecoder::decode() must funnel
+        // that into InvalidTcStringException, not let it leak.
+        $writer = new \Flenczewski\IabTcf\BitWriter();
+        $writer->writeUint(\Flenczewski\IabTcf\Spec::CORE_STRING_VERSION, 6); // Version
+        $writer->writeUint(0, 36); // Created
+        $writer->writeUint(0, 36); // LastUpdated
+        $writer->writeUint(1, 12); // CmpId
+        $writer->writeUint(1, 12); // CmpVersion
+        $writer->writeUint(0, 6); // ConsentScreen
+        $writer->writeBits(\Flenczewski\IabTcf\Alpha2Code::encode('EN')); // ConsentLanguage
+        $writer->writeUint(0, 12); // VendorListVersion
+        $writer->writeUint(0, 6); // TcfPolicyVersion
+        $writer->writeBool(false); // IsServiceSpecific
+        $writer->writeBool(false); // UseNonStandardStacks
+        $writer->writeUint(0, 12); // SpecialFeatureOptIns (empty bitfield)
+        $writer->writeUint(0, 24); // PurposesConsent (empty bitfield)
+        $writer->writeUint(0, 24); // PurposesLITransparency (empty bitfield)
+        $writer->writeBool(false); // PurposeOneTreatment
+        $writer->writeBits(\Flenczewski\IabTcf\Alpha2Code::encode('EN')); // PublisherCC
+        // VendorConsents: MaxVendorId(16)=0, IsRangeEncoding(1)=false, empty bitfield.
+        $writer->writeUint(0, 16);
+        $writer->writeBool(false);
+        // VendorLegitimateInterests: same, empty.
+        $writer->writeUint(0, 16);
+        $writer->writeBool(false);
+        // PublisherRestrictions: NumPubRestrictions(12)=1, then one malformed restriction.
+        $writer->writeUint(1, 12);
+        $writer->writeUint(0, 6); // PurposeId = 0, invalid (must be 1..24)
+        $writer->writeUint(0, 2); // RestrictionType = NOT_ALLOWED
+        $writer->writeUint(0, 12); // NumEntries = 0 (empty range list)
+
+        $tcString = $writer->toBase64Url();
+
+        $this->expectException(\Flenczewski\IabTcf\Exception\InvalidTcStringException::class);
+
+        TcStringDecoder::decode($tcString);
+    }
 }

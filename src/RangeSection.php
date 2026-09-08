@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf;
 
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 use Flenczewski\IabTcf\Exception\InvalidTcStringException;
 
 /**
@@ -64,7 +65,18 @@ final class RangeSection
      */
     public static function encodeRangeList(array $vendorIds): string
     {
-        return self::buildRangeListBits(self::toRanges(self::normalize($vendorIds)));
+        $entries = self::toRanges(self::normalize($vendorIds));
+        if (count($entries) > self::MAX_RANGE_ENTRIES) {
+            throw new InvalidArgumentException(sprintf(
+                'This vendor id set needs %d range entries but NumEntries holds at most %d. '
+                . 'Publisher restrictions are always range-encoded, so this set cannot be expressed; '
+                . 'split it across restrictions or use fewer, more contiguous vendor ids.',
+                count($entries),
+                self::MAX_RANGE_ENTRIES,
+            ));
+        }
+
+        return self::buildRangeListBits($entries);
     }
 
     /** @param array<int, array{0: int, 1: int}> $entries */
