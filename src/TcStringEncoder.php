@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf;
 
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
+
 /**
  * Encodes a TcModel into a TC String: a Core segment (segment 0, no
  * SegmentType prefix) followed by the Disclosed Vendors segment (segment
@@ -24,8 +26,8 @@ final class TcStringEncoder
 
         $core = new BitWriter();
         $core->writeUint(self::CORE_STRING_VERSION, 6);
-        $core->writeUint(EpochTime::toDeciseconds($created), 36);
-        $core->writeUint(EpochTime::toDeciseconds($lastUpdated), 36);
+        $core->writeUint(self::decisecondsFor('created', $created), 36);
+        $core->writeUint(self::decisecondsFor('lastUpdated', $lastUpdated), 36);
         $core->writeUint($model->cmpId, 12);
         $core->writeUint($model->cmpVersion, 12);
         $core->writeUint($model->consentScreen, 6);
@@ -54,6 +56,22 @@ final class TcStringEncoder
         }
 
         return implode('.', $segments);
+    }
+
+    /** The Created/LastUpdated fields are unsigned, so pre-epoch dates cannot be represented. */
+    private static function decisecondsFor(string $field, \DateTimeImmutable $dateTime): int
+    {
+        $deciseconds = EpochTime::toDeciseconds($dateTime);
+        if ($deciseconds < 0) {
+            throw new InvalidArgumentException(sprintf(
+                '%s is %s, before the Unix epoch; the TC String Created/LastUpdated fields are unsigned '
+                . 'and cannot represent dates before 1970-01-01T00:00:00Z.',
+                $field,
+                $dateTime->format(\DATE_ATOM),
+            ));
+        }
+
+        return $deciseconds;
     }
 
     /** @param int[] $vendorIds */

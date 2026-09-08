@@ -19,7 +19,14 @@ final class EpochTime
         // offset instead of adding it for any pre-1970 timestamp.
         $totalMicroseconds = $dateTime->getTimestamp() * 1_000_000 + (int) $dateTime->format('u');
 
-        return (int) round($totalMicroseconds / 100_000);
+        // Truncate toward negative infinity rather than rounding: a Created or
+        // LastUpdated stamp must never land after the moment it describes.
+        $deciseconds = intdiv($totalMicroseconds, 100_000);
+        if ($totalMicroseconds < 0 && $totalMicroseconds % 100_000 !== 0) {
+            $deciseconds--;
+        }
+
+        return $deciseconds;
     }
 
     public static function fromDeciseconds(int $deciseconds): \DateTimeImmutable

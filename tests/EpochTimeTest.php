@@ -62,4 +62,31 @@ final class EpochTimeTest extends TestCase
             0.1
         );
     }
+
+    public function testTruncatesRatherThanRoundingIntoTheFuture(): void
+    {
+        // .19s past the second must become 1 decisecond, never 2.
+        $dt = new \DateTimeImmutable('2024-03-15T10:30:00.190000+00:00');
+
+        self::assertSame(
+            $dt->getTimestamp() * 10 + 1,
+            EpochTime::toDeciseconds($dt)
+        );
+    }
+
+    public function testTruncationNeverProducesATimeAfterTheInput(): void
+    {
+        $dt = new \DateTimeImmutable('2024-03-15T10:30:00.990000+00:00');
+        $restored = EpochTime::fromDeciseconds(EpochTime::toDeciseconds($dt));
+
+        self::assertLessThanOrEqual($dt, $restored);
+    }
+
+    public function testTruncationIsTowardsNegativeInfinityBeforeTheEpoch(): void
+    {
+        $dt = new \DateTimeImmutable('1969-06-15T08:00:00.150000+00:00');
+        $restored = EpochTime::fromDeciseconds(EpochTime::toDeciseconds($dt));
+
+        self::assertLessThanOrEqual($dt, $restored);
+    }
 }
