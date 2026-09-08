@@ -1,0 +1,90 @@
+# Changelog
+
+All notable changes to this project are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [2.0.0] - 2026-09-08
+
+Upgrading from 1.x? See [UPGRADE-2.0.md](UPGRADE-2.0.md).
+
+### Security
+
+- **Fixed a remote memory-exhaustion denial of service in TC String decoding.**
+  `RangeSection::decodeRangeList()` expanded every range entry into a PHP array
+  with no upper bound. A 2 752-character TC String allocated 512 MB and took
+  0.98 s; a maximal one would exhaust memory outright. TC Strings arrive from
+  cookies and query parameters, so this was reachable from untrusted input.
+  Range entries are now validated (`start >= 1`, `end >= start`, `end <= 65535`)
+  and a running total is checked *before* expansion, which bounds the work
+  rather than only the result. The same payload is now rejected in 0.0004 s
+  with a 0.10 MB delta. **All 1.x versions are affected; upgrading is the fix.**
+
+### Added
+
+- `Flenczewski\IabTcf\Exception\IabTcfException`, a marker interface implemented
+  by every exception this package throws, plus `InvalidArgumentException`,
+  `OutOfRangeException`, `InvalidTcStringException` and `GvlException`.
+- `Flenczewski\IabTcf\Spec`, a single source of truth for every TCF v2 field bound.
+- `Flenczewski\IabTcf\Http\HttpClient` with a zero-dependency `StreamHttpClient`
+  (timeout, TLS verification, HTTP status checks, no redirect following) and an
+  optional `Psr18HttpClient` adapter for projects that already have a PSR-18 client.
+- `TcModel` implements `JsonSerializable`, so the model-to-array mapping that
+  previously lived inside the CLI script is now reusable by consumers.
+- `iab-tcf help` / `--help` / `-h`, which print usage to stdout and exit 0.
+- Conformance tests against TC Strings produced by other implementations,
+  including the IAB's own `iabtcf-es`, plus malformed-input and boundary suites.
+- `ext-json` is now declared in `require`; `.gitattributes` keeps `tests/`,
+  `tools/` and `.github/` out of `composer require` installs.
+
+### Changed
+
+- **`TcStringDecoder::decode()` now throws only `InvalidTcStringException`** for
+  malformed input, preserving the original cause via `getPrevious()`. It
+  previously leaked `OutOfRangeException`, `ValueError` and others.
+- **`TcModel` and `PublisherRestriction` validate on construction.** Out-of-spec
+  values previously surfaced only at `encode()` time as bit-level messages.
+- **`GvlFetcher::__construct()` takes `?HttpClient`** instead of a callable.
+- `decodeRangeList()` returns a sorted, de-duplicated list, matching what the
+  encoder produces.
+- Timestamps truncate toward the past instead of rounding, so a `Created` stamp
+  can never land after the moment it describes.
+- CI now covers PHP 8.1 through 8.5, runs PHPStan at level `max`, enforces
+  coding standards, and verifies the refreshed GVL parses before committing it.
+
+### Fixed
+
+- **Silent consent-data loss.** `BitWriter::writeIdSet()` ignored ids outside
+  `1..width`, so `purposesConsent: [1, 25]` round-tripped to `[1]` and
+  `vendorConsents: [0, 5]` to `[5]`. Such ids now throw.
+- **`Gvl::fromJson()` accepted garbage.** `null`, `[]` and `{}` all produced a
+  `Gvl` whose `lastUpdated` silently defaulted to *now*, making a corrupt list
+  look freshly updated. Malformed payloads now throw `GvlException`.
+- **`decode()` → `encode()` was not idempotent.** A missing Disclosed Vendors
+  segment was normalized to `[]`, so re-encoding appended an empty segment and
+  changed the string's meaning from "unknown" to "zero vendors disclosed".
+- `Alpha2Code::decode()` accepted 6-bit values above 25, producing models with
+  non-letter country codes that `encode()` then refused to re-encode.
+- `writeUint(0, 0)` emitted one bit instead of none, and field widths at or
+  above 63 skipped the range check entirely.
+- Publisher restrictions that overflow the 12-bit `NumEntries` field now report
+  what went wrong instead of `"Value 4096 does not fit in 12 bits"`.
+- `GvlFetcher` no longer hangs without a timeout, ignores HTTP status codes, or
+  leaks PHP warnings.
+
+### Removed
+
+- The callable constructor argument on `GvlFetcher` (replaced by `HttpClient`).
+
+### Known tradeoffs
+
+- `resources/vendor-list.json` is ~908 KB and refreshed weekly by CI, so the
+  repository grows roughly 45 MB per year. This is deliberate: it is what makes
+  `Gvl::bundled()` work offline with no runtime network dependency.
+- The Publisher TC segment (type 3) remains unimplemented and is skipped when
+  decoding.
+
+## [1.0.0]
+
+- Initial release: TCF v2 core encode/decode, Global Vendor List tools, and CLI.
