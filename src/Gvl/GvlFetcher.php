@@ -4,21 +4,24 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf\Gvl;
 
-use Flenczewski\IabTcf\Exception\GvlException;
+use Flenczewski\IabTcf\Http\HttpClient;
+use Flenczewski\IabTcf\Http\StreamHttpClient;
 
 /**
  * Fetches the Global Vendor List over the network. Prefer {@see Gvl::bundled()}
  * for most use cases (fast, offline, no network dependency at runtime) — use
  * this class only when you deliberately need the freshest possible list.
+ *
+ * Pass an {@see HttpClient} to control how the request is made; the default
+ * {@see StreamHttpClient} needs no dependencies but you can supply
+ * {@see \Flenczewski\IabTcf\Http\Psr18HttpClient} to reuse a PSR-18 client.
  */
 final class GvlFetcher
 {
     private const BASE_URL = 'https://vendor-list.consensu.org/v3/';
 
-    /** @param (callable(string): (string|false))|null $httpGet injectable for testing; defaults to file_get_contents() */
-    public function __construct(private $httpGet = null)
+    public function __construct(private readonly ?HttpClient $httpClient = null)
     {
-        $this->httpGet ??= static fn (string $url): string|false => file_get_contents($url);
     }
 
     public function fetchLatest(): Gvl
@@ -60,11 +63,6 @@ final class GvlFetcher
 
     private function get(string $url): string
     {
-        $result = ($this->httpGet)($url);
-        if ($result === false) {
-            throw new GvlException("Failed to fetch the Global Vendor List from {$url}.");
-        }
-
-        return $result;
+        return ($this->httpClient ?? new StreamHttpClient())->get($url);
     }
 }
