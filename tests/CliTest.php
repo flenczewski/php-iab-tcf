@@ -88,4 +88,12 @@ final class CliTest extends TestCase
         self::assertSame(1, $exitCode);
         self::assertStringContainsString('Usage:', $stderr);
     }
+
+    public function testHelpFlagPrintsUsageToStdoutAndSucceeds(): void
+    {
+        [$exitCode, $stdout, $stderr] = $this->runCli(['--help']);
+
+        self::assertSame(0, $exitCode, "stderr: {$stderr}");
+        self::assertStringContainsString('iab-tcf decode', $stdout);
+    }
 }

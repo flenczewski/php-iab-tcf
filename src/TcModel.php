@@ -19,7 +19,7 @@ use Flenczewski\IabTcf\Exception\InvalidArgumentException;
  * Publisher TC segment (segment type 3) is intentionally not represented —
  * see README "Known limitations".
  */
-final class TcModel
+final class TcModel implements \JsonSerializable
 {
     /**
      * @param int[] $specialFeatureOptIns 1-based Special Feature ids opted into
@@ -119,5 +119,40 @@ final class TcModel
                 );
             }
         }
+    }
+
+    /** @return array<string,mixed> */
+    public function jsonSerialize(): array
+    {
+        return [
+            'version' => Spec::CORE_STRING_VERSION,
+            'created' => $this->created?->format(\DATE_ATOM),
+            'lastUpdated' => $this->lastUpdated?->format(\DATE_ATOM),
+            'cmpId' => $this->cmpId,
+            'cmpVersion' => $this->cmpVersion,
+            'consentScreen' => $this->consentScreen,
+            'consentLanguage' => $this->consentLanguage,
+            'vendorListVersion' => $this->vendorListVersion,
+            'tcfPolicyVersion' => $this->tcfPolicyVersion,
+            'isServiceSpecific' => $this->isServiceSpecific,
+            'useNonStandardStacks' => $this->useNonStandardStacks,
+            'purposeOneTreatment' => $this->purposeOneTreatment,
+            'publisherCC' => $this->publisherCC,
+            'specialFeatureOptIns' => $this->specialFeatureOptIns,
+            'purposesConsent' => $this->purposesConsent,
+            'purposesLITransparency' => $this->purposesLITransparency,
+            'vendorConsents' => $this->vendorConsents,
+            'vendorLegitimateInterests' => $this->vendorLegitimateInterests,
+            'publisherRestrictions' => array_map(
+                static fn (PublisherRestriction $r): array => [
+                    'purposeId' => $r->purposeId,
+                    'type' => $r->type->name,
+                    'vendorIds' => $r->vendorIds,
+                ],
+                $this->publisherRestrictions,
+            ),
+            'disclosedVendors' => $this->disclosedVendors,
+            'allowedVendors' => $this->allowedVendors,
+        ];
     }
 }
