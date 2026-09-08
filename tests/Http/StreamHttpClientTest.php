@@ -47,9 +47,12 @@ final class StreamHttpClientTest extends TestCase
         fclose($probe);
         $port = (int) substr((string) $name, strrpos((string) $name, ':') + 1);
 
+        // Discard the server's output rather than piping it: nothing drains a
+        // pipe here, so a chattier router or a longer test list would
+        // eventually fill the OS buffer and wedge the child.
         $server = @proc_open(
             ['php', '-S', "127.0.0.1:{$port}", __DIR__ . '/fixtures/router.php'],
-            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+            [1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']],
             $pipes,
         );
         if (!is_resource($server)) {

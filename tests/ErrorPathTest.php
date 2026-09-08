@@ -148,11 +148,12 @@ final class ErrorPathTest extends TestCase
         TcStringEncoder::encode($model);
     }
 
-    public function testUnknownPublisherRestrictionTypeIsRejected(): void
+    public function testRestrictionTypeThreeDecodesAsUndefined(): void
     {
-        // RestrictionType covers all four 2-bit values, so the guard is only
-        // reachable if the enum ever loses a case — assert it still throws the
-        // decode-side type rather than leaking a ValueError.
+        // RestrictionType covers all four 2-bit values, so the tryFrom() guard
+        // in the decoder is currently unreachable. What is worth pinning down
+        // is that value 3 is a real case (UNDEFINED) and decodes as one,
+        // rather than being mistaken for an unknown type.
         $writer = new BitWriter();
         $writer->writeUint(1, 12);
         $writer->writeUint(1, 6);
@@ -164,11 +165,11 @@ final class ErrorPathTest extends TestCase
         self::assertSame(RestrictionType::UNDEFINED, $restrictions[0]->type);
     }
 
-    public function testUnreadableBundledListReportsTheFilePath(): void
+    public function testBundledListParsesWhenItsResourceIsReadable(): void
     {
-        // Guard exists for a packaging accident (missing/unreadable resource).
-        // It cannot be triggered against the real installed file, so assert the
-        // contract the guard promises instead: a readable file parses.
+        // The unreadable-file guard cannot be triggered without breaking the
+        // installed package, so this asserts the other half of that contract:
+        // with the resource present, bundled() returns a usable list.
         self::assertGreaterThan(0, Gvl::bundled()->vendorListVersion);
     }
 
