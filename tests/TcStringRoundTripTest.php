@@ -41,16 +41,17 @@ final class TcStringRoundTripTest extends TestCase
         self::assertSame(1, substr_count($tcString, '.'));
     }
 
-    public function testDisclosedVendorsSegmentCanBeExplicitlyOmittedForPreV23Compatibility(): void
+    public function testExplicitNullOmitsTheSegmentAndDecodesBackToNull(): void
     {
         $model = new TcModel(cmpId: 1, cmpVersion: 1, disclosedVendors: null);
 
         $tcString = TcStringEncoder::encode($model);
         self::assertStringNotContainsString('.', $tcString, 'Explicit null must omit the Disclosed Vendors segment.');
 
-        // Decoding a string without the segment must not error, and normalizes to [].
+        // An absent segment decodes back to null, not [], so that a decode/encode
+        // cycle reproduces the original string exactly.
         $decoded = TcStringDecoder::decode($tcString);
-        self::assertSame([], $decoded->disclosedVendors);
+        self::assertNull($decoded->disclosedVendors);
     }
 
     public function testFullyPopulatedModelRoundTrip(): void
@@ -240,5 +241,30 @@ final class TcStringRoundTripTest extends TestCase
         $this->expectException(\Flenczewski\IabTcf\Exception\InvalidTcStringException::class);
 
         TcStringDecoder::decode($tcString);
+    }
+
+    public function testDecodingAStringWithoutADisclosedVendorsSegmentYieldsNull(): void
+    {
+        $withoutSegment = TcStringEncoder::encode(
+            new TcModel(cmpId: 1, cmpVersion: 1, disclosedVendors: null)
+        );
+
+        self::assertNull(TcStringDecoder::decode($withoutSegment)->disclosedVendors);
+    }
+
+    public function testPreV23StringRoundTripsUnchanged(): void
+    {
+        $preV23 = 'COvFyGBOvFyGBAbAAAENAPCAAOAAAAAAAAAAAEEUACCKAAA';
+
+        self::assertSame($preV23, TcStringEncoder::encode(TcStringDecoder::decode($preV23)));
+    }
+
+    public function testEmptyDisclosedVendorsSegmentStillDecodesToAnEmptyArray(): void
+    {
+        $withSegment = TcStringEncoder::encode(
+            new TcModel(cmpId: 1, cmpVersion: 1, disclosedVendors: [])
+        );
+
+        self::assertSame([], TcStringDecoder::decode($withSegment)->disclosedVendors);
     }
 }

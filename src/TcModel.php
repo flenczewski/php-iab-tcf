@@ -29,8 +29,11 @@ final class TcModel
      * @param int[] $vendorLegitimateInterests vendor ids with legitimate interest
      * @param PublisherRestriction[] $publisherRestrictions
      * @param int[]|null $disclosedVendors vendor ids disclosed to the user (segment type 1). Defaults to `[]`
-     *                                     (segment emitted, v2.3-compliant); pass `null` to omit the segment
-     *                                     entirely for pre-v2.3 wire compatibility.
+     *                                     for newly constructed models (segment emitted, v2.3-compliant); pass
+     *                                     `null` to omit the segment entirely for pre-v2.3 wire compatibility.
+     *                                     TcStringDecoder sets this to `null` when the decoded string carried no
+     *                                     such segment, so `null` means "absent" and `[]` means "present but
+     *                                     empty" — keeping decode()->encode() bit-stable.
      * @param int[]|null $allowedVendors vendor ids allowed by the publisher (segment type 2); null omits the segment
      */
     public function __construct(

@@ -68,10 +68,11 @@ final class TcStringDecoder
         $vendorLegitimateInterests = RangeSection::decode($core);
         $publisherRestrictions = PublisherRestrictionsCodec::decode($core);
 
-        // Absent Disclosed Vendors segment is tolerated for pre-v2.3 strings
-        // and normalized to [] (v2.3 made this segment mandatory going
-        // forward, but decoding must stay backward-compatible).
-        $disclosedVendors = [];
+        // Absent Disclosed Vendors segment stays null so that decode()->encode()
+        // reproduces the input byte-for-byte. TCF v2.3 made the segment
+        // mandatory for *new* strings (TcModel defaults to []), but decoding
+        // must stay backward compatible with v2.0-v2.2 strings.
+        $disclosedVendors = null;
         $allowedVendors = null;
 
         for ($i = 1; $i < count($segments); $i++) {
