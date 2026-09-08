@@ -5,3 +5,5 @@
 /.superpowers/
 /.php-cs-fixer.cache
 /.phpstan.cache/
+/coverage.xml
+/.cov.xml

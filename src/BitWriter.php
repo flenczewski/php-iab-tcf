@@ -31,6 +31,9 @@ final class BitWriter
 
             return $this;
         }
+        // Only widths below 63 need a value check: at exactly 63 bits every
+        // non-negative int fits (PHP_INT_MAX is 2**63 - 1), and computing
+        // 1 << 63 would overflow to a negative number and reject everything.
         if ($numBits < 63 && $value >= (1 << $numBits)) {
             throw new InvalidArgumentException("Value {$value} does not fit in {$numBits} bits.");
         }

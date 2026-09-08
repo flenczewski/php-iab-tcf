@@ -42,6 +42,9 @@ final class Gvl
 
         $path = __DIR__ . '/../../resources/vendor-list.json';
         $json = @file_get_contents($path);
+        // Not covered by the suite: this guards a packaging accident (the
+        // resource missing from an install), which cannot be staged without
+        // breaking the installed package itself.
         if ($json === false) {
             throw new GvlException("Could not read the bundled Global Vendor List at {$path}.");
         }
@@ -57,7 +60,11 @@ final class Gvl
             throw new GvlException("Global Vendor List is not valid JSON: {$e->getMessage()}", 0, $e);
         }
 
-        if (!is_array($data) || array_is_list($data)) {
+        // PHP decodes both `{}` and `[]` to an empty array, so they cannot be
+        // told apart here. Let an empty value fall through to the required-field
+        // check below, which names what is actually missing instead of
+        // reporting a confusing "got array".
+        if (!is_array($data) || ($data !== [] && array_is_list($data))) {
             throw new GvlException(
                 'Global Vendor List must be a JSON object, got ' . get_debug_type($data) . '.'
             );

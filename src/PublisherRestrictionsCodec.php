@@ -50,6 +50,10 @@ final class PublisherRestrictionsCodec
 
         for ($i = 0; $i < $numRestrictions; $i++) {
             $purposeId = $reader->readUint(6);
+            // RestrictionType defines all four 2-bit values, so tryFrom() cannot
+            // currently fail — the guard is kept (and is therefore not covered)
+            // so that removing a case from the enum surfaces as a decode error
+            // rather than an uncaught ValueError.
             $typeValue = $reader->readUint(2);
             $type = RestrictionType::tryFrom($typeValue)
                 ?? throw new InvalidTcStringException("Unknown publisher restriction type {$typeValue}.");

@@ -137,11 +137,10 @@ final class RangeSection
                     "Range entry {$i} ends at {$end}, before its start {$start}."
                 );
             }
-            if ($end > Spec::MAX_VENDOR_ID) {
-                throw new InvalidTcStringException(
-                    "Range entry {$i} ends at vendor id {$end}, above the maximum of " . Spec::MAX_VENDOR_ID . '.'
-                );
-            }
+            // No upper-bound check is needed here: both ids come from
+            // readUint(16), and Spec::MAX_VENDOR_ID *is* the 16-bit maximum, so
+            // $end can never exceed it. An unreachable branch in this loop would
+            // be untestable code in the one function that has to be airtight.
 
             $total += $end - $start + 1;
             if ($total > $maxIds) {

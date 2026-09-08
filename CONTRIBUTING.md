@@ -27,6 +27,16 @@ composer analyse   # PHPStan, level max, must report no errors
 composer cs        # coding standards check (composer cs-fix applies them)
 ```
 
+CI additionally measures coverage and fails below a 95% floor. The suite
+currently covers 99.7% of `src/`; the only two uncovered lines are deliberately
+unreachable guards, each commented as such where it sits. To measure locally you
+need a coverage driver (`pcov` or `xdebug`) — the Docker fallback image does not
+ship one, so run it on a PHP that has one:
+
+```bash
+vendor/bin/phpunit --coverage-text
+```
+
 The suite runs with `failOnWarning`, `failOnRisky`, `failOnNotice` and
 `failOnDeprecation` enabled — a PHP warning fails the build. That is
 deliberate: an unvalidated Global Vendor List parser went unnoticed for a
