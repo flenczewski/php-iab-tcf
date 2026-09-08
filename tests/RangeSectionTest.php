@@ -108,7 +108,7 @@ final class RangeSectionTest extends TestCase
     public function testRejectsRangeListThatWouldExpandBeyondTheVendorIdSpace(): void
     {
         $this->expectException(\Flenczewski\IabTcf\Exception\InvalidTcStringException::class);
-        $this->expectExceptionMessage('more than 65535');
+        $this->expectExceptionMessage('budget of 65535 vendor ids');
 
         RangeSection::decodeRangeList(new BitReader(self::hostileRangeList(500)));
     }

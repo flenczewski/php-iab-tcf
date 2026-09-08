@@ -46,12 +46,18 @@ final class Spec
      * attacker can multiply that cap by 4095 and exhaust memory — the same
      * amplification the per-list bound exists to prevent.
      *
-     * Four times the vendor space is far beyond any real signal: the largest
+     * One whole vendor space is already far beyond any real signal: the largest
      * third-party string in our conformance suite expands to 70 ids in total,
-     * and the entire Global Vendor List is on the order of 1200 vendors. It
-     * caps this section's decode at roughly 10 MB.
+     * the entire Global Vendor List is on the order of 1200 vendors, and even
+     * restricting every one of them under all 24 purposes would need ~29 000.
+     *
+     * The bound is deliberately tight rather than merely finite. Rejection
+     * costs whatever was expanded before the budget ran out, so a generous
+     * ceiling hands an attacker a cheap way to burn CPU on every request:
+     * at four vendor spaces a 220-byte string cost ~100 ms to reject, versus
+     * ~25 ms here and ~16 us for a legitimate decode.
      */
-    public const MAX_PUBLISHER_RESTRICTION_VENDOR_IDS = 4 * self::MAX_VENDOR_ID;
+    public const MAX_PUBLISHER_RESTRICTION_VENDOR_IDS = self::MAX_VENDOR_ID;
 
     /**
      * A TC String has a Core segment plus at most one each of Disclosed

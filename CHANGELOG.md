@@ -35,6 +35,16 @@ Upgrading from 1.x? See [UPGRADE-2.0.md](UPGRADE-2.0.md).
 
   **All 1.x versions are affected; upgrading is the fix.**
 
+### Performance
+
+- Range-list decoding skips its sort/de-duplication pass when the decoded
+  entries are already ascending and non-overlapping, which every conformant
+  TC String is. Expanding a full 65 535-id range costs ~3.5 ms; normalising it
+  cost a further ~35 ms. A single restriction spanning the whole vendor space
+  now decodes in ~11 ms instead of ~58 ms, and a rejected hostile payload costs
+  ~4 ms instead of ~39 ms. Out-of-order or overlapping input is still
+  normalised, so the returned list is unchanged.
+
 ### Added
 
 - `Flenczewski\IabTcf\Exception\IabTcfException`, a marker interface implemented
