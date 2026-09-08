@@ -19,7 +19,7 @@ final class Base64Url
 
         $bytes = '';
         for ($i = 0; $i < strlen($bits); $i += 8) {
-            $bytes .= chr((int) bindec(substr($bits, $i, 8)));
+            $bytes .= chr((int) bindec(substr($bits, $i, 8)) & 0xFF);
         }
 
         return rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=');

@@ -12,7 +12,10 @@ final class GvlTest extends TestCase
 {
     private static function fixtureJson(): string
     {
-        return file_get_contents(__DIR__ . '/fixtures/vendor-list-sample.json');
+        $json = file_get_contents(__DIR__ . '/fixtures/vendor-list-sample.json');
+        self::assertIsString($json);
+
+        return $json;
     }
 
     public function testFromJsonParsesMetadataAndVendors(): void

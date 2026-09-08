@@ -131,6 +131,7 @@ final class TcStringRoundTripTest extends TestCase
 
         $decoded = TcStringDecoder::decode($tcString);
 
+        self::assertNotNull($decoded->created);
         self::assertGreaterThanOrEqual($before->getTimestamp() - 1, $decoded->created->getTimestamp());
         self::assertLessThanOrEqual($after->getTimestamp() + 1, $decoded->created->getTimestamp());
     }

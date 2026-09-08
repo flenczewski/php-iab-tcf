@@ -13,6 +13,9 @@ use Flenczewski\IabTcf\Exception\InvalidTcStringException;
  */
 final class Alpha2Code
 {
+    /** ASCII code point of 'A'; letter value 0 maps to it, 25 maps to 'Z'. */
+    private const ASCII_A = 65;
+
     public static function isValid(string $code): bool
     {
         return preg_match('/^[A-Za-z]{2}$/', $code) === 1;
@@ -26,8 +29,8 @@ final class Alpha2Code
 
         $code = strtoupper($code);
         $writer = new BitWriter();
-        $writer->writeUint(ord($code[0]) - ord('A'), 6);
-        $writer->writeUint(ord($code[1]) - ord('A'), 6);
+        $writer->writeUint(ord($code[0]) - self::ASCII_A, 6);
+        $writer->writeUint(ord($code[1]) - self::ASCII_A, 6);
 
         return $writer->toBitString();
     }
@@ -36,12 +39,12 @@ final class Alpha2Code
     {
         $letters = '';
         foreach ([$reader->readUint(6), $reader->readUint(6)] as $position => $value) {
-            if ($value > 25) {
+            if ($value < 0 || $value > 25) {
                 throw new InvalidTcStringException(
                     "Letter {$position} of a 2-letter code decoded to {$value}; only 0..25 (A..Z) are valid."
                 );
             }
-            $letters .= chr(ord('A') + $value);
+            $letters .= chr(self::ASCII_A + $value);
         }
 
         return $letters;

@@ -12,6 +12,10 @@ use PHPUnit\Framework\TestCase;
 
 final class CliTest extends TestCase
 {
+    /**
+     * @param list<string> $args
+     * @return array{0: int, 1: string, 2: string} exit code, stdout, stderr
+     */
     private function runCli(array $args): array
     {
         $cmd = array_merge(['php', dirname(__DIR__) . '/bin/iab-tcf'], $args);
@@ -25,11 +29,24 @@ final class CliTest extends TestCase
 
         $stdout = stream_get_contents($pipes[1]);
         $stderr = stream_get_contents($pipes[2]);
+        self::assertIsString($stdout);
+        self::assertIsString($stderr);
         fclose($pipes[1]);
         fclose($pipes[2]);
         $exitCode = proc_close($process);
 
         return [$exitCode, $stdout, $stderr];
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private static function decodeJson(string $json): array
+    {
+        /** @var array<string,mixed> $data */
+        $data = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
+
+        return $data;
     }
 
     public function testDecodeRoundTripsAnEncodedModel(): void
@@ -40,7 +57,7 @@ final class CliTest extends TestCase
         [$exitCode, $stdout, $stderr] = $this->runCli(['decode', $tcString]);
 
         self::assertSame(0, $exitCode, "stderr: {$stderr}");
-        $decoded = json_decode($stdout, true, flags: JSON_THROW_ON_ERROR);
+        $decoded = self::decodeJson($stdout);
         self::assertSame(42, $decoded['cmpId']);
         self::assertSame(3, $decoded['cmpVersion']);
         self::assertSame([1, 2, 3], $decoded['purposesConsent']);
@@ -58,7 +75,7 @@ final class CliTest extends TestCase
         [$exitCode, $stdout, $stderr] = $this->runCli(['decode', $tcString]);
 
         self::assertSame(0, $exitCode, "stderr: {$stderr}");
-        $decoded = json_decode($stdout, true, flags: JSON_THROW_ON_ERROR);
+        $decoded = self::decodeJson($stdout);
         self::assertSame(
             [['purposeId' => 4, 'type' => 'REQUIRE_CONSENT', 'vendorIds' => [7, 8]]],
             $decoded['publisherRestrictions'],
@@ -106,7 +123,7 @@ final class CliTest extends TestCase
         [$exitCode, $stdout, $stderr] = $this->runCli(['decode', $vector]);
 
         self::assertSame(0, $exitCode, "stderr: {$stderr}");
-        $decoded = json_decode($stdout, true, flags: JSON_THROW_ON_ERROR);
+        $decoded = self::decodeJson($stdout);
         self::assertSame(27, $decoded['cmpId']);
         self::assertSame([2, 6, 8], $decoded['vendorConsents']);
     }

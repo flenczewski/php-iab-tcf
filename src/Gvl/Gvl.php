@@ -81,17 +81,29 @@ final class Gvl
             if (!is_array($vendorData)) {
                 throw new GvlException('Every entry in "vendors" must be an object.');
             }
+            /** @var array<string,mixed> $vendorData */
             $vendor = Vendor::fromArray($vendorData);
             $vendors[$vendor->id] = $vendor;
         }
 
         return new self(
-            gvlSpecificationVersion: (int) $data['gvlSpecificationVersion'],
-            vendorListVersion: (int) $data['vendorListVersion'],
-            tcfPolicyVersion: (int) $data['tcfPolicyVersion'],
+            gvlSpecificationVersion: self::toInt($data['gvlSpecificationVersion'], 'gvlSpecificationVersion'),
+            vendorListVersion: self::toInt($data['vendorListVersion'], 'vendorListVersion'),
+            tcfPolicyVersion: self::toInt($data['tcfPolicyVersion'], 'tcfPolicyVersion'),
             lastUpdated: self::parseLastUpdated($data['lastUpdated']),
             vendors: $vendors,
         );
+    }
+
+    private static function toInt(mixed $value, string $field): int
+    {
+        if (!is_int($value) && !(is_string($value) && preg_match('/^-?\d+$/', $value) === 1)) {
+            throw new GvlException(
+                "Global Vendor List \"{$field}\" must be an integer, got " . get_debug_type($value) . '.'
+            );
+        }
+
+        return (int) $value;
     }
 
     private static function parseLastUpdated(mixed $value): \DateTimeImmutable

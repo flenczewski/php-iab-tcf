@@ -39,8 +39,8 @@ final class Vendor
         }
 
         return new self(
-            id: (int) $data['id'],
-            name: (string) $data['name'],
+            id: self::toInt($data['id'], 'id'),
+            name: self::toString($data['name'], 'name'),
             purposes: self::intList($data, 'purposes'),
             legIntPurposes: self::intList($data, 'legIntPurposes'),
             flexiblePurposes: self::intList($data, 'flexiblePurposes'),
@@ -63,6 +63,33 @@ final class Vendor
             );
         }
 
-        return array_values(array_map(intval(...), $value));
+        $ids = [];
+        foreach ($value as $entry) {
+            $ids[] = self::toInt($entry, $key);
+        }
+
+        return $ids;
+    }
+
+    private static function toInt(mixed $value, string $field): int
+    {
+        if (!is_int($value) && !(is_string($value) && preg_match('/^-?\d+$/', $value) === 1)) {
+            throw new GvlException(
+                "Vendor field \"{$field}\" must be an integer, got " . get_debug_type($value) . '.'
+            );
+        }
+
+        return (int) $value;
+    }
+
+    private static function toString(mixed $value, string $field): string
+    {
+        if (!is_string($value)) {
+            throw new GvlException(
+                "Vendor field \"{$field}\" must be a string, got " . get_debug_type($value) . '.'
+            );
+        }
+
+        return $value;
     }
 }

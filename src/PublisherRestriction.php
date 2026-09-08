@@ -17,14 +17,14 @@ final class PublisherRestriction
     ) {
         if ($purposeId < 1 || $purposeId > Spec::MAX_PURPOSE_ID) {
             throw new InvalidArgumentException(
-                "purposeId must be between 1 and " . Spec::MAX_PURPOSE_ID . ", got {$purposeId}."
+                'purposeId must be between 1 and ' . Spec::MAX_PURPOSE_ID . ", got {$purposeId}."
             );
         }
 
         foreach ($vendorIds as $vendorId) {
             if ($vendorId < Spec::MIN_VENDOR_ID || $vendorId > Spec::MAX_VENDOR_ID) {
                 throw new InvalidArgumentException(
-                    "vendorIds must be between " . Spec::MIN_VENDOR_ID . ' and ' . Spec::MAX_VENDOR_ID
+                    'vendorIds must be between ' . Spec::MIN_VENDOR_ID . ' and ' . Spec::MAX_VENDOR_ID
                     . ", got {$vendorId}."
                 );
             }
