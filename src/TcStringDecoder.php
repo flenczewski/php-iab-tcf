@@ -39,7 +39,11 @@ final class TcStringDecoder
 
     private static function decodeSegments(string $tcString): TcModel
     {
-        $segments = explode('.', $tcString);
+        // Cap the split itself: without the limit, a megabyte of separators
+        // allocates a million-element array before the count check below can
+        // reject it. The extra element is what makes an over-long string
+        // detectable at all.
+        $segments = explode('.', $tcString, Spec::MAX_SEGMENTS + 1);
         $core = new BitReader(Base64Url::decodeToBits($segments[0]));
 
         $version = $core->readUint(6);
