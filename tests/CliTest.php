@@ -32,7 +32,7 @@ final class CliTest extends TestCase
         return [$exitCode, $stdout, $stderr];
     }
 
-    public function testDecodeKnownTcString(): void
+    public function testDecodeRoundTripsAnEncodedModel(): void
     {
         $model = new TcModel(cmpId: 42, cmpVersion: 3, purposesConsent: [1, 2, 3]);
         $tcString = TcStringEncoder::encode($model);
@@ -95,5 +95,19 @@ final class CliTest extends TestCase
 
         self::assertSame(0, $exitCode, "stderr: {$stderr}");
         self::assertStringContainsString('iab-tcf decode', $stdout);
+    }
+
+    public function testDecodeAThirdPartyTcStringFromTheCommandLine(): void
+    {
+        // A real production-CMP string, not one this package produced —
+        // see ReferenceVectorTest for its provenance.
+        $vector = 'COvFyGBOvFyGBAbAAAENAPCAAOAAAAAAAAAAAEEUACCKAAA';
+
+        [$exitCode, $stdout, $stderr] = $this->runCli(['decode', $vector]);
+
+        self::assertSame(0, $exitCode, "stderr: {$stderr}");
+        $decoded = json_decode($stdout, true, flags: JSON_THROW_ON_ERROR);
+        self::assertSame(27, $decoded['cmpId']);
+        self::assertSame([2, 6, 8], $decoded['vendorConsents']);
     }
 }
