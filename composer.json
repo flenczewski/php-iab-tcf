@@ -12,8 +12,19 @@
         "gvl",
         "rodo"
     ],
+    "authors": [
+        {
+            "name": "Fabian Lenczewski",
+            "homepage": "https://github.com/flenczewski"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/flenczewski/php-iab-tcf/issues",
+        "source": "https://github.com/flenczewski/php-iab-tcf"
+    },
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.1",
+        "ext-json": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5",
@@ -37,8 +48,14 @@
     "bin": [
         "bin/iab-tcf"
     ],
+    "config": {
+        "sort-packages": true
+    },
     "scripts": {
         "test": "tools/test.sh",
+        "analyse": "phpstan analyse",
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix",
         "update-gvl": "bin/iab-tcf update-gvl"
     },
     "minimum-stability": "stable"
