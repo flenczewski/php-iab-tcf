@@ -1,4 +1,4 @@
-# php-iab-tcf
+# PHP IAB TCF Consent String Decoder & Encoder
 
 [![CI](https://github.com/flenczewski/php-iab-tcf/actions/workflows/ci.yml/badge.svg)](https://github.com/flenczewski/php-iab-tcf/actions/workflows/ci.yml)
 [![Packagist](https://img.shields.io/packagist/v/flenczewski/php-iab-tcf.svg)](https://packagist.org/packages/flenczewski/php-iab-tcf)
