@@ -51,6 +51,16 @@ callers relying on the old leniency, so this is a minor, not a patch, release.
   limit and that addition overflowed to a float.
 - `Spec` and `TcStringEncoder` documented the timestamp ceiling as ~2187-10-30;
   it is 2187-10-06T10:21:13Z.
+- **A GVL integer written as a string past `PHP_INT_MAX` saturated silently.**
+  `"id": "99999999999999999999999"` cast to `PHP_INT_MAX` and keyed the vendor
+  map there, so every consent check for that vendor answered "not on the list"
+  with no error. The same value spelled as a JSON number was already rejected.
+  Integer strings must now round-trip through `(int)`, which also rejects
+  non-canonical spellings such as `"007"`.
+- **A vendor entry with id `0` or a negative id was accepted.** Vendor ids are
+  1-based. The upper end is deliberately left uncapped: an id beyond the 16-bit
+  TC String field is unusable for consent checks, but not a reason to refuse the
+  whole list.
 
 ### Changed
 

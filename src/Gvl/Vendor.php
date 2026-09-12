@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Flenczewski\IabTcf\Gvl;
 
 use Flenczewski\IabTcf\Exception\GvlException;
+use Flenczewski\IabTcf\Spec;
 
 /** A single vendor entry from the Global Vendor List, limited to fields relevant to consent validation. */
 final class Vendor
@@ -41,8 +42,18 @@ final class Vendor
             }
         }
 
+        $id = self::toInt($data['id'], 'id');
+        // Vendor ids are 1-based, so 0 or a negative id is corrupt input rather
+        // than an unusual vendor. The upper end is deliberately not capped at
+        // Spec::MAX_VENDOR_ID: a list naming an id beyond the 16-bit TC String
+        // field is unusable for consent checks, but that is not a reason to
+        // refuse to parse the rest of the list.
+        if ($id < Spec::MIN_VENDOR_ID) {
+            throw new GvlException("Vendor entry declares id {$id}; vendor ids start at 1.");
+        }
+
         return new self(
-            id: self::toInt($data['id'], 'id'),
+            id: $id,
             name: self::toString($data['name'], 'name'),
             purposes: self::intList($data, 'purposes'),
             legIntPurposes: self::intList($data, 'legIntPurposes'),
@@ -81,6 +92,17 @@ final class Vendor
         if (!is_int($value) && !(is_string($value) && preg_match('/^-?\d+\z/', $value) === 1)) {
             throw new GvlException(
                 "Vendor field \"{$field}\" must be an integer, got " . get_debug_type($value) . '.'
+            );
+        }
+
+        // A digit string longer than PHP_INT_MAX saturates on cast rather than
+        // failing, so "99999999999999999999999" would become a vendor keyed by
+        // PHP_INT_MAX. The same value written as a JSON number is already
+        // rejected (it arrives as a float); the string spelling must not be the
+        // way around that check.
+        if (is_string($value) && (string) (int) $value !== $value) {
+            throw new GvlException(
+                "Vendor field \"{$field}\" is {$value}, which is not representable as an integer."
             );
         }
 

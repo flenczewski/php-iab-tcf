@@ -196,6 +196,36 @@ final class GvlTest extends TestCase
         );
     }
 
+    /**
+     * A digit string past PHP_INT_MAX saturates on cast instead of failing, so
+     * the vendor used to land in the map keyed by PHP_INT_MAX and every consent
+     * check for it silently answered "not on the list". The same value spelled
+     * as a JSON number is rejected as a float, so the string spelling must not
+     * be a way around that.
+     */
+    public function testRejectsAnIntegerStringThatWouldSaturateOnCast(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\GvlException::class);
+        $this->expectExceptionMessage('not representable as an integer');
+
+        Gvl::fromJson(
+            '{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":4,'
+            . '"lastUpdated":"2026-01-01T00:00:00Z",'
+            . '"vendors":{"1":{"id":"99999999999999999999999","name":"A"}}}'
+        );
+    }
+
+    public function testRejectsANonPositiveVendorId(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\GvlException::class);
+        $this->expectExceptionMessage('declares id 0; vendor ids start at 1');
+
+        Gvl::fromJson(
+            '{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":4,'
+            . '"lastUpdated":"2026-01-01T00:00:00Z","vendors":{"0":{"id":0,"name":"A"}}}'
+        );
+    }
+
     public function testAVendorWithANullNameIsReportedAsAWrongTypeNotAMissingField(): void
     {
         $this->expectException(\Flenczewski\IabTcf\Exception\GvlException::class);

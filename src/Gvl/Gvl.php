@@ -128,6 +128,17 @@ final class Gvl
             );
         }
 
+        // A digit string longer than PHP_INT_MAX saturates on cast rather than
+        // failing, so "99999999999999999999999" would become a vendor keyed by
+        // PHP_INT_MAX. The same value written as a JSON number is already
+        // rejected (it arrives as a float); the string spelling must not be the
+        // way around that check.
+        if (is_string($value) && (string) (int) $value !== $value) {
+            throw new GvlException(
+                "Global Vendor List \"{$field}\" is {$value}, which is not representable as an integer."
+            );
+        }
+
         return (int) $value;
     }
 
