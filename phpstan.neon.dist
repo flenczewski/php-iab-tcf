@@ -5,11 +5,3 @@ parameters:
         - tests
         - bin
     treatPhpDocTypesAsCertain: false
-    ignoreErrors:
-        # PHPStan models $http_response_header as always defined, but the HTTP
-        # stream wrapper only creates it for HTTP(S) requests — it is absent for
-        # file:// and on some transport failures, which StreamHttpClientTest
-        # covers. The null-coalesce is load-bearing, not redundant.
-        -
-            message: '#Variable \$http_response_header on left side of \?\? always exists and is not nullable#'
-            path: src/Http/StreamHttpClient.php

@@ -24,6 +24,9 @@ final class StreamHttpClient implements HttpClient
      */
     public const DEFAULT_MAX_RESPONSE_BYTES = 64 * 1024 * 1024;
 
+    /** How much of the body to pull per read; large enough that a multi-megabyte list is not read byte-wise. */
+    private const READ_CHUNK_BYTES = 65536;
+
     /** @param positive-int $maxResponseBytes */
     public function __construct(
         private readonly float $timeoutSeconds = 10.0,
@@ -53,32 +56,50 @@ final class StreamHttpClient implements HttpClient
             ],
         ]);
 
-        // Read one byte past the limit so an over-long body is detectable
-        // rather than silently truncated into a "corrupt JSON" error. The min()
-        // keeps that +1 from overflowing to a float for a PHP_INT_MAX limit,
-        // which file_get_contents()'s int $length would reject outright.
-        $readLength = min($this->maxResponseBytes, \PHP_INT_MAX - 1) + 1;
-        $body = @file_get_contents($url, false, $context, 0, $readLength);
-        if ($body === false) {
+        // Read the body in chunks rather than handing file_get_contents() a
+        // $maxlen: before PHP 8.3 that argument is allocated up front, so the
+        // 64 MB default would eagerly claim 64 MB for a 1 MB vendor list, and
+        // a PHP_INT_MAX limit died outright with "Out of memory". Streaming
+        // keeps the footprint proportional to what the endpoint actually sent
+        // while still refusing to buffer more than the limit.
+        $handle = @fopen($url, 'r', false, $context);
+        if ($handle === false) {
             throw new GvlException(
                 "HTTP request to {$url} failed: the host is unreachable, the request timed out, "
                 . 'or allow_url_fopen is disabled.'
             );
         }
 
-        /** @var list<string> $http_response_header set by the HTTP stream wrapper */
-        $headers = $http_response_header ?? [];
-        $status = self::statusFrom($headers);
-        if ($headers !== [] && ($status < 200 || $status >= 300)) {
-            throw new GvlException("HTTP request to {$url} returned status {$status}.");
-        }
-
-        if (strlen($body) > $this->maxResponseBytes) {
-            throw new GvlException(sprintf(
-                'HTTP response from %s exceeds the %d-byte limit; refusing to buffer it.',
-                $url,
-                $this->maxResponseBytes,
+        try {
+            $metadata = stream_get_meta_data($handle);
+            /** @var list<string> $headers */
+            $headers = array_values(array_filter(
+                is_array($metadata['wrapper_data'] ?? null) ? $metadata['wrapper_data'] : [],
+                is_string(...),
             ));
+            $status = self::statusFrom($headers);
+            if ($headers !== [] && ($status < 200 || $status >= 300)) {
+                throw new GvlException("HTTP request to {$url} returned status {$status}.");
+            }
+
+            $body = '';
+            while (!feof($handle)) {
+                $chunk = fread($handle, self::READ_CHUNK_BYTES);
+                if ($chunk === false) {
+                    throw new GvlException("HTTP response from {$url} could not be read to completion.");
+                }
+
+                $body .= $chunk;
+                if (strlen($body) > $this->maxResponseBytes) {
+                    throw new GvlException(sprintf(
+                        'HTTP response from %s exceeds the %d-byte limit; refusing to buffer it.',
+                        $url,
+                        $this->maxResponseBytes,
+                    ));
+                }
+            }
+        } finally {
+            fclose($handle);
         }
 
         return $body;

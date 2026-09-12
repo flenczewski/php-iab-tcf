@@ -46,9 +46,12 @@ callers relying on the old leniency, so this is a minor, not a patch, release.
   float past ~9.2e12 seconds and `intdiv()` then rejects it, so a microsecond
   epoch passed where seconds were meant bypassed the "too far in the future"
   guard entirely and crashed code catching `IabTcfException`.
-- `StreamHttpClient` with `maxResponseBytes: PHP_INT_MAX` threw a `TypeError`
-  from `file_get_contents()`, because the read length is one byte past the
-  limit and that addition overflowed to a float.
+- **`StreamHttpClient` reserved the whole limit up front on PHP 8.1 and 8.2.**
+  The cap was passed to `file_get_contents()` as `$maxlen`, which PHP allocates
+  before reading anything prior to 8.3 — so a 1 MB vendor list claimed the full
+  64 MB, and `maxResponseBytes: PHP_INT_MAX` died with "Out of memory". The body
+  is now read in chunks, so the footprint follows what the endpoint actually
+  sent and the cap is enforced as the body arrives.
 - `Spec` and `TcStringEncoder` documented the timestamp ceiling as ~2187-10-30;
   it is 2187-10-06T10:21:13Z.
 - **A GVL integer written as a string past `PHP_INT_MAX` saturated silently.**

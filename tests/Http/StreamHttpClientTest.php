@@ -163,10 +163,12 @@ final class StreamHttpClientTest extends TestCase
         new StreamHttpClient(maxResponseBytes: 0);
     }
 
-    public function testAnIntMaxByteLimitReadsRatherThanOverflowing(): void
+    public function testAnIntMaxByteLimitReadsWhatWasSentRatherThanReservingTheLimit(): void
     {
-        // The read length is one byte past the limit, and that addition used to
-        // overflow to a float, which file_get_contents()'s int $length rejects.
+        // The limit used to be passed to file_get_contents() as $maxlen, which
+        // PHP allocates up front before 8.3 — so this died with "Out of memory
+        // (tried to allocate 9223372036854775832 bytes)" rather than reading
+        // 5000 bytes. Streaming makes the footprint follow the response.
         $body = (new StreamHttpClient(maxResponseBytes: \PHP_INT_MAX))->get($this->baseUrl() . '/bytes/5000');
 
         self::assertSame(5000, strlen($body));
