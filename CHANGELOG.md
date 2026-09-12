@@ -52,8 +52,10 @@ callers relying on the old leniency, so this is a minor, not a patch, release.
   64 MB, and `maxResponseBytes: PHP_INT_MAX` died with "Out of memory". The body
   is now read in chunks, so the footprint follows what the endpoint actually
   sent and the cap is enforced as the body arrives.
-- `Spec` and `TcStringEncoder` documented the timestamp ceiling as ~2187-10-30;
-  it is 2187-10-06T10:21:13Z.
+- **A truncated HTTP response was accepted as a complete one.** A peer that
+  hangs up mid-body ends the read exactly like a finished one, so a
+  half-delivered vendor list came back looking whole. The buffered length is now
+  checked against the declared `Content-Length`.
 - **A GVL integer written as a string past `PHP_INT_MAX` saturated silently.**
   `"id": "99999999999999999999999"` cast to `PHP_INT_MAX` and keyed the vendor
   map there, so every consent check for that vendor answered "not on the list"
@@ -94,9 +96,10 @@ callers relying on the old leniency, so this is a minor, not a patch, release.
 
 ### Documentation
 
-- **Corrected an over-strong round-trip guarantee.** The README and two
-  docblocks claimed a decode/encode cycle reproduces its input "byte for byte".
-  That holds only for *canonically encoded* strings. A new
+- **Corrected an over-strong round-trip guarantee.** The README, UPGRADE-2.0.md
+  and two docblocks claimed a decode/encode cycle reproduces its input "byte for
+  byte". That holds only for *canonically encoded* strings whose segments this
+  package models. A new
   [Round-tripping](README.md#round-tripping) section documents the five cases
   where re-encoding legitimately differs from its input — a dropped Publisher
   TC segment, reordered segments, a re-chosen BitField/Range encoding,

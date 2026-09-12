@@ -20,7 +20,9 @@ final class EpochTime
         // dies with a TypeError under strict_types. A microsecond epoch passed
         // where seconds were meant lands squarely in that range.
         $seconds = $dateTime->getTimestamp();
-        $maxSafeSeconds = intdiv(\PHP_INT_MAX, 1_000_000);
+        // Minus the microsecond offset added below, which would otherwise push a
+        // timestamp sitting exactly on the boundary back over PHP_INT_MAX.
+        $maxSafeSeconds = intdiv(\PHP_INT_MAX - 999_999, 1_000_000);
         if ($seconds > $maxSafeSeconds || $seconds < -$maxSafeSeconds) {
             throw new InvalidArgumentException(sprintf(
                 '%s is outside the range this converter can represent; deciseconds since the epoch '

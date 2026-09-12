@@ -94,6 +94,17 @@ final class EpochTimeTest extends TestCase
         EpochTime::toDeciseconds(new \DateTimeImmutable('@1700000000000000'));
     }
 
+    public function testATimestampSittingExactlyOnTheOverflowBoundaryIsRejected(): void
+    {
+        // The guard has to leave room for the microsecond offset added after the
+        // multiplication, or a boundary second with microseconds tips over
+        // PHP_INT_MAX anyway and intdiv() throws a TypeError.
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('outside the range this converter can represent');
+
+        EpochTime::toDeciseconds(new \DateTimeImmutable('@9223372036854.999999'));
+    }
+
     public function testAPastTimestampThatWouldOverflowTheMicrosecondArithmeticIsRejected(): void
     {
         $this->expectException(InvalidArgumentException::class);

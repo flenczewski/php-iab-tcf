@@ -174,6 +174,47 @@ final class StreamHttpClientTest extends TestCase
         self::assertSame(5000, strlen($body));
     }
 
+    public function testATruncatedResponseIsRejectedRatherThanReturnedAsComplete(): void
+    {
+        // feof() also becomes true when the peer hangs up mid-body, so a
+        // half-delivered vendor list used to come back looking complete.
+        $probe = @stream_socket_server('tcp://127.0.0.1:0', $errno, $errstr);
+        if ($probe === false) {
+            self::markTestSkipped('Could not bind a port for the truncating server.');
+        }
+        $name = stream_socket_get_name($probe, false);
+        fclose($probe);
+        $port = (int) substr((string) $name, strrpos((string) $name, ':') + 1);
+
+        $server = @proc_open(
+            ['php', __DIR__ . '/fixtures/truncating-server.php', (string) $port],
+            [1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']],
+            $pipes,
+        );
+        if (!is_resource($server)) {
+            self::markTestSkipped('Could not start the truncating server.');
+        }
+
+        try {
+            for ($i = 0; $i < 100; $i++) {
+                $sock = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.1);
+                if ($sock !== false) {
+                    fclose($sock);
+                    break;
+                }
+                usleep(50_000);
+            }
+
+            $this->expectException(GvlException::class);
+            $this->expectExceptionMessage('is 10 bytes but declared Content-Length: 100000');
+
+            (new StreamHttpClient(timeoutSeconds: 3.0))->get("http://127.0.0.1:{$port}/vendor-list.json");
+        } finally {
+            proc_terminate($server);
+            proc_close($server);
+        }
+    }
+
     public function testRedirectsAreNotFollowedAndSurfaceAsAnError(): void
     {
         // A vendor list served from an unexpected redirect is not something to

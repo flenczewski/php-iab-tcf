@@ -98,11 +98,38 @@ final class StreamHttpClient implements HttpClient
                     ));
                 }
             }
+
+            // feof() also becomes true when the peer hangs up mid-body, which
+            // would otherwise hand back a truncated vendor list as if it were
+            // complete. Compare against the length the server promised.
+            $expected = self::contentLengthFrom($headers);
+            if ($expected !== null && strlen($body) !== $expected) {
+                throw new GvlException(sprintf(
+                    'HTTP response from %s is %d bytes but declared Content-Length: %d.',
+                    $url,
+                    strlen($body),
+                    $expected,
+                ));
+            }
         } finally {
             fclose($handle);
         }
 
         return $body;
+    }
+
+    /** @param list<string> $headers */
+    private static function contentLengthFrom(array $headers): ?int
+    {
+        $length = null;
+        foreach ($headers as $header) {
+            // Take the last one: a redirect chain leaves earlier headers behind.
+            if (preg_match('#^Content-Length:\s*(\d+)\s*\z#i', $header, $matches) === 1) {
+                $length = (int) $matches[1];
+            }
+        }
+
+        return $length;
     }
 
     /** @param list<string> $headers */

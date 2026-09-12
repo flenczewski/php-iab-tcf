@@ -256,6 +256,12 @@ steps in [UPGRADE-2.0.md](UPGRADE-2.0.md).
 ## Known limitations
 
 - **Publisher TC segment (segment type 3) is not implemented.** If present in a decoded TC String, it is skipped, and re-encoding the model **drops it** — see [Round-tripping](#round-tripping). `TcModel` has no fields for publisher-specific purposes/custom purposes. Contributions welcome.
+- **Enforcing `MaxVendorId` can reject strings 2.0.0 decoded.** A vendor section
+  whose range entries name ids above its own declared `MaxVendorId` is
+  non-conformant, but the reference implementation (`iabtcf-es`) does not reject
+  it — so a third-party cookie produced through it decoded in 2.0.0 and now
+  raises `InvalidTcStringException`. Worth exercising against a sample of real
+  traffic when upgrading.
 - Only Core String **version 2** is supported (the only version defined by TCF v2.x). Decoding a v1 or other-version string throws `InvalidTcStringException`.
 - `Vendor`/`Gvl` model only the fields relevant to consent validation (ids, names, purpose/feature associations) — not the full GVL schema (illustrations, `dataDeclaration`, `dataRetention`, `standardTexts`, etc). Use `GvlFetcher::fetchLatestRaw()`/`fetchVersionRaw()` if you need the untouched raw JSON.
 
