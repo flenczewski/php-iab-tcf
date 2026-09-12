@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf\Tests;
 
+use Flenczewski\IabTcf\Base64Url;
+use Flenczewski\IabTcf\BitReader;
+use Flenczewski\IabTcf\BitWriter;
 use Flenczewski\IabTcf\PublisherRestriction;
+use Flenczewski\IabTcf\RangeSection;
 use Flenczewski\IabTcf\RestrictionType;
 use Flenczewski\IabTcf\TcModel;
 use Flenczewski\IabTcf\TcStringDecoder;
@@ -267,5 +271,82 @@ final class TcStringRoundTripTest extends TestCase
         );
 
         self::assertSame([], TcStringDecoder::decode($withSegment)->disclosedVendors);
+    }
+
+    /**
+     * Pins the README "Round-tripping" table.
+     *
+     * Encoding is canonical, so re-encoding a non-canonical input returns a
+     * *different* string carrying the *same* model. The README used to promise
+     * a byte-for-byte round trip, which only ever held for canonical inputs;
+     * these cases are the counterexamples, and they must stay documented.
+     *
+     * @dataProvider nonCanonicalStrings
+     */
+    public function testNonCanonicalInputIsNormalisedRatherThanReproduced(string $tcString): void
+    {
+        $reEncoded = TcStringEncoder::encode(TcStringDecoder::decode($tcString));
+
+        self::assertNotSame($tcString, $reEncoded, 'This input is meant to be non-canonical.');
+
+        // Lossless as far as the model is concerned: the normalised form
+        // decodes to the same thing, and is itself stable.
+        self::assertEquals(
+            TcStringDecoder::decode($tcString),
+            TcStringDecoder::decode($reEncoded),
+        );
+        self::assertSame($reEncoded, TcStringEncoder::encode(TcStringDecoder::decode($reEncoded)));
+    }
+
+    /** @return iterable<string,array{string}> */
+    public static function nonCanonicalStrings(): iterable
+    {
+        $canonical = TcStringEncoder::encode(new TcModel(
+            cmpId: 300,
+            cmpVersion: 1,
+            vendorConsents: [1, 2, 3],
+            disclosedVendors: [1],
+            allowedVendors: [2],
+            created: new \DateTimeImmutable('2024-01-01T00:00:00Z'),
+            lastUpdated: new \DateTimeImmutable('2024-01-01T00:00:00Z'),
+        ));
+        [$core, $disclosed, $allowed] = explode('.', $canonical);
+
+        yield 'carries a Publisher TC segment' => [
+            $canonical . '.' . (new BitWriter())->writeUint(3, 3)->writeBits(str_repeat('1', 20))->toBase64Url(),
+        ];
+
+        yield 'orders Allowed Vendors before Disclosed Vendors' => [
+            "{$core}.{$allowed}.{$disclosed}",
+        ];
+
+        yield 'pads the core segment past base64 alignment' => [
+            Base64Url::encodeBits(Base64Url::decodeToBits($core) . str_repeat('0', 200))
+            . ".{$disclosed}.{$allowed}",
+        ];
+    }
+
+    /**
+     * The vendor-section counterpart of the above: a range encoding is chosen
+     * where a bitfield is shorter, and entries overlap.
+     */
+    public function testANonCanonicalVendorSectionIsReEncodedInTheSmallerForm(): void
+    {
+        $verbose = (new BitWriter())
+            ->writeUint(7, 16)      // MaxVendorId
+            ->writeBool(true)       // IsRangeEncoding, though a 7-bit bitfield is shorter
+            ->writeUint(2, 12)      // NumEntries, overlapping
+            ->writeBool(true)->writeUint(1, 16)->writeUint(5, 16)
+            ->writeBool(true)->writeUint(3, 16)->writeUint(7, 16)
+            ->toBitString();
+
+        $ids = RangeSection::decode(new BitReader($verbose));
+
+        self::assertSame([1, 2, 3, 4, 5, 6, 7], $ids, 'Overlaps collapse into one sorted set.');
+        self::assertLessThan(
+            strlen($verbose),
+            strlen(RangeSection::encode($ids)),
+            'The canonical form must be the smaller of the two encodings.',
+        );
     }
 }

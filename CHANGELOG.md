@@ -5,6 +5,84 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-09-12
+
+A validation and documentation pass. No API was removed, but three inputs that
+2.0.0 accepted are now rejected — see **Changed**.
+
+### Fixed
+
+- **Two-letter codes with a trailing newline were accepted and silently
+  truncated.** `Alpha2Code::isValid()` anchored on `$`, which PCRE also matches
+  immediately *before* a trailing newline, so `consentLanguage: "EN\n"` passed
+  `TcModel`'s constructor and then encoded as `EN`. Consent metadata must never
+  be repaired behind the caller's back. The same `$`-vs-`\z` bug let the GVL
+  parser accept `"3\n"` as the integer `3` in every numeric field.
+- **`BitReader::readUint()` returned a wrong value instead of failing for
+  widths above 63 bits.** Past 63 bits `bindec()` returns a float and the cast
+  yielded nonsense — 64 set bits read back as `0`. `BitWriter::writeUint()` has
+  always rejected these widths; the reader now mirrors it with an
+  `OutOfRangeException`. Unreachable through `TcStringDecoder` (no field is
+  wider than 36 bits), but `BitReader` is public API.
+- **A malformed `PurposeId` in the Publisher Restrictions section threw
+  `InvalidArgumentException` instead of `InvalidTcStringException`.** Every
+  other malformed field in that section already threw the latter; the value
+  reached `PublisherRestriction`'s constructor unchecked.
+- **A vendor entry with `"name": null` was reported as a missing field.**
+  `Vendor::fromArray()` used `isset()`, which cannot tell absent from null; it
+  now uses `array_key_exists()` and reports the wrong type.
+- **A Global Vendor List declaring the same vendor id twice silently dropped
+  one of them.** The vendor map is keyed by each entry's own id, so the second
+  entry overwrote the first. It is now rejected.
+- `Created`/`LastUpdated` past the 36-bit field's ceiling (~2187-10-06) failed
+  with `BitWriter`'s "does not fit in 36 bits" rather than a message naming the
+  field and the limit, unlike the existing pre-epoch check.
+- `TcStringEncoder` duplicated the Core String version literal instead of
+  referring to `Spec::CORE_STRING_VERSION`, contradicting `Spec`'s own
+  single-source-of-truth docblock.
+
+### Changed
+
+- **A vendor section's declared `MaxVendorId` is now enforced.** The spec
+  defines it as the largest vendor id represented in the section, but the
+  decoder read it and then ignored it, so a section declaring `MaxVendorId: 10`
+  could carry a range entry for vendor 60000. Such a string is non-conformant
+  and other implementations reject it; accepting it also meant re-encoding
+  silently emitted a *different* `MaxVendorId` than the input carried. These
+  strings now raise `InvalidTcStringException`. Publisher restriction range
+  lists have no `MaxVendorId` field and are unaffected. Conformant strings —
+  including every vector in the conformance suite and the full 1 208-vendor
+  bundled GVL — are unaffected.
+- **`GvlFetcher::urlForVersion()` rejects versions below 1** with
+  `InvalidArgumentException`. A negative version previously built
+  `.../vendor-list-v-1.json` and surfaced only as a remote 404.
+- **`StreamHttpClient` bounds the response body it will buffer** to 64 MB by
+  default, configurable via the new `maxResponseBytes` constructor argument.
+  Every other path in this package caps what untrusted input can make it
+  allocate; an unbounded `file_get_contents()` was the remaining gap.
+
+### Added
+
+- `Gvl::resetBundledCache()` (`@internal`), which drops the `Gvl::bundled()`
+  memo so test cases can be isolated from one another.
+- `Spec::MAX_TIMESTAMP_DECISECONDS`.
+- `StreamHttpClient::DEFAULT_MAX_RESPONSE_BYTES`.
+
+### Documentation
+
+- **Corrected an over-strong round-trip guarantee.** The README and two
+  docblocks claimed a decode/encode cycle reproduces its input "byte for byte".
+  That holds only for *canonically encoded* strings. A new
+  [Round-tripping](README.md#round-tripping) section documents the five cases
+  where re-encoding legitimately differs from its input — a dropped Publisher
+  TC segment, reordered segments, a re-chosen BitField/Range encoding,
+  normalised range entries, and stripped over-padding — and warns against using
+  a re-encoded string as a cache key or equality test for a third-party string.
+  A regression test pins each case.
+- "Known limitations" now links the unimplemented Publisher TC segment to its
+  round-tripping consequence, and the Security section documents the two new
+  bounds.
+
 ## [2.0.0] - 2026-09-08
 
 Upgrading from 1.x? See [UPGRADE-2.0.md](UPGRADE-2.0.md).
