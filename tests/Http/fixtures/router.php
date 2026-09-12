@@ -27,6 +27,11 @@ if ($path === '/redirect') {
     return true;
 }
 
+if (is_string($path) && preg_match('#^/bytes/(\d+)$#', $path, $m) === 1) {
+    echo str_repeat('x', (int) $m[1]);
+    return true;
+}
+
 if (is_string($path) && preg_match('#^/status/(\d{3})$#', $path, $m) === 1) {
     http_response_code((int) $m[1]);
     echo 'status ' . $m[1];

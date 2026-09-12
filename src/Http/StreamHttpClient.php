@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Flenczewski\IabTcf\Http;
 
 use Flenczewski\IabTcf\Exception\GvlException;
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 
 /**
  * Zero-dependency default client built on PHP's HTTP stream wrapper.
@@ -15,10 +16,25 @@ use Flenczewski\IabTcf\Exception\GvlException;
  */
 final class StreamHttpClient implements HttpClient
 {
+    /**
+     * The real Global Vendor List is a few megabytes, so this leaves ample
+     * headroom while still bounding what a hostile or misconfigured endpoint
+     * can make the process allocate. Everything else in this package caps its
+     * allocations from untrusted input; a network read should not be the gap.
+     */
+    public const DEFAULT_MAX_RESPONSE_BYTES = 64 * 1024 * 1024;
+
+    /** @param positive-int $maxResponseBytes */
     public function __construct(
         private readonly float $timeoutSeconds = 10.0,
         private readonly string $userAgent = 'php-iab-tcf (+https://github.com/flenczewski/php-iab-tcf)',
+        private readonly int $maxResponseBytes = self::DEFAULT_MAX_RESPONSE_BYTES,
     ) {
+        if ($maxResponseBytes < 1) {
+            throw new InvalidArgumentException(
+                "maxResponseBytes must be at least 1, got {$maxResponseBytes}."
+            );
+        }
     }
 
     public function get(string $url): string
@@ -37,7 +53,9 @@ final class StreamHttpClient implements HttpClient
             ],
         ]);
 
-        $body = @file_get_contents($url, false, $context);
+        // Read one byte past the limit so an over-long body is detectable
+        // rather than silently truncated into a "corrupt JSON" error.
+        $body = @file_get_contents($url, false, $context, 0, $this->maxResponseBytes + 1);
         if ($body === false) {
             throw new GvlException(
                 "HTTP request to {$url} failed: the host is unreachable, the request timed out, "
@@ -50,6 +68,14 @@ final class StreamHttpClient implements HttpClient
         $status = self::statusFrom($headers);
         if ($headers !== [] && ($status < 200 || $status >= 300)) {
             throw new GvlException("HTTP request to {$url} returned status {$status}.");
+        }
+
+        if (strlen($body) > $this->maxResponseBytes) {
+            throw new GvlException(sprintf(
+                'HTTP response from %s exceeds the %d-byte limit; refusing to buffer it.',
+                $url,
+                $this->maxResponseBytes,
+            ));
         }
 
         return $body;

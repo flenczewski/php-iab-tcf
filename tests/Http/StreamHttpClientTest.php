@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Flenczewski\IabTcf\Tests\Http;
 
 use Flenczewski\IabTcf\Exception\GvlException;
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 use Flenczewski\IabTcf\Http\StreamHttpClient;
 use PHPUnit\Framework\TestCase;
 
@@ -124,6 +125,42 @@ final class StreamHttpClientTest extends TestCase
         $this->expectExceptionMessage("returned status {$status}");
 
         (new StreamHttpClient())->get($this->baseUrl() . '/status/' . $status);
+    }
+
+    /**
+     * Everything else in this package bounds what untrusted input can make it
+     * allocate; an unbounded file_get_contents() was the one gap. A hostile or
+     * misconfigured endpoint should not be able to stream the process to death.
+     */
+    public function testAResponseAboveTheByteLimitIsRefused(): void
+    {
+        $this->expectException(GvlException::class);
+        $this->expectExceptionMessage('exceeds the 100-byte limit');
+
+        (new StreamHttpClient(maxResponseBytes: 100))->get($this->baseUrl() . '/bytes/5000');
+    }
+
+    public function testAResponseExactlyAtTheByteLimitIsAccepted(): void
+    {
+        $body = (new StreamHttpClient(maxResponseBytes: 100))->get($this->baseUrl() . '/bytes/100');
+
+        self::assertSame(100, strlen($body));
+    }
+
+    public function testTheDefaultLimitDoesNotInterfereWithARealisticPayload(): void
+    {
+        $body = (new StreamHttpClient())->get($this->baseUrl() . '/bytes/5000');
+
+        self::assertSame(5000, strlen($body));
+    }
+
+    public function testRejectsANonPositiveByteLimit(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('maxResponseBytes must be at least 1');
+
+        /** @phpstan-ignore argument.type (the runtime guard is what is under test) */
+        new StreamHttpClient(maxResponseBytes: 0);
     }
 
     public function testRedirectsAreNotFollowedAndSurfaceAsAnError(): void
