@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Flenczewski\IabTcf\Tests;
 
 use Flenczewski\IabTcf\EpochTime;
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 final class EpochTimeTest extends TestCase
@@ -80,6 +81,25 @@ final class EpochTimeTest extends TestCase
         $restored = EpochTime::fromDeciseconds(EpochTime::toDeciseconds($dt));
 
         self::assertLessThanOrEqual($dt, $restored);
+    }
+
+    public function testAFutureTimestampThatWouldOverflowTheMicrosecondArithmeticIsRejected(): void
+    {
+        // Seconds times a million stops being an integer past ~9.2e12 seconds,
+        // and intdiv() then fails with a TypeError; rejecting the input keeps
+        // that from surfacing as a non-package exception.
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('outside the range this converter can represent');
+
+        EpochTime::toDeciseconds(new \DateTimeImmutable('@1700000000000000'));
+    }
+
+    public function testAPastTimestampThatWouldOverflowTheMicrosecondArithmeticIsRejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('outside the range this converter can represent');
+
+        EpochTime::toDeciseconds(new \DateTimeImmutable('@-1700000000000000'));
     }
 
     public function testTruncationIsTowardsNegativeInfinityBeforeTheEpoch(): void

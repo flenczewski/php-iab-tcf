@@ -60,12 +60,19 @@ final class TcStringEncoder
 
     /**
      * The Created/LastUpdated fields are unsigned 36-bit deciseconds, so dates
-     * outside 1970-01-01 .. ~2187-10-30 cannot be represented. Both ends are
+     * outside 1970-01-01 .. 2187-10-06 cannot be represented. Both ends are
      * checked here so the caller gets a message naming the field and the limit,
      * rather than BitWriter's "does not fit in 36 bits".
      */
     private static function decisecondsFor(string $field, \DateTimeImmutable $dateTime): int
     {
+        // Range-check in seconds first: EpochTime rejects timestamps large
+        // enough to overflow its microsecond arithmetic, and its message names
+        // neither the field nor this 36-bit limit.
+        if ($dateTime->getTimestamp() > intdiv(Spec::MAX_TIMESTAMP_DECISECONDS, 10)) {
+            throw self::timestampTooLate($field, $dateTime);
+        }
+
         $deciseconds = EpochTime::toDeciseconds($dateTime);
         if ($deciseconds < 0) {
             throw new InvalidArgumentException(sprintf(
@@ -76,16 +83,21 @@ final class TcStringEncoder
             ));
         }
         if ($deciseconds > Spec::MAX_TIMESTAMP_DECISECONDS) {
-            throw new InvalidArgumentException(sprintf(
-                '%s is %s, too far in the future; the TC String Created/LastUpdated fields are 36-bit '
-                . 'deciseconds and cannot represent dates after %s.',
-                $field,
-                $dateTime->format(\DATE_ATOM),
-                EpochTime::fromDeciseconds(Spec::MAX_TIMESTAMP_DECISECONDS)->format(\DATE_ATOM),
-            ));
+            throw self::timestampTooLate($field, $dateTime);
         }
 
         return $deciseconds;
+    }
+
+    private static function timestampTooLate(string $field, \DateTimeImmutable $dateTime): InvalidArgumentException
+    {
+        return new InvalidArgumentException(sprintf(
+            '%s is %s, too far in the future; the TC String Created/LastUpdated fields are 36-bit '
+            . 'deciseconds and cannot represent dates after %s.',
+            $field,
+            $dateTime->format(\DATE_ATOM),
+            EpochTime::fromDeciseconds(Spec::MAX_TIMESTAMP_DECISECONDS)->format(\DATE_ATOM),
+        ));
     }
 
     /** @param int[] $vendorIds */

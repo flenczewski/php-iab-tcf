@@ -148,6 +148,37 @@ final class ErrorPathTest extends TestCase
         TcStringEncoder::encode($model);
     }
 
+    public function testTimestampsPastTheCeilingAreRejectedWithADateAwareMessage(): void
+    {
+        $model = new TcModel(
+            cmpId: 1,
+            cmpVersion: 1,
+            created: new \DateTimeImmutable('2200-01-01', new \DateTimeZone('UTC')),
+        );
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('too far in the future');
+
+        TcStringEncoder::encode($model);
+    }
+
+    public function testAMicrosecondEpochMistakenForSecondsIsStillAPackageException(): void
+    {
+        // '@1700000000000000' overflows EpochTime's microsecond arithmetic to a
+        // float, which used to escape as a raw TypeError past the ceiling guard
+        // rather than as something a caller catching IabTcfException would see.
+        $model = new TcModel(
+            cmpId: 1,
+            cmpVersion: 1,
+            created: new \DateTimeImmutable('@1700000000000000'),
+        );
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('too far in the future');
+
+        TcStringEncoder::encode($model);
+    }
+
     public function testRestrictionTypeThreeDecodesAsUndefined(): void
     {
         // RestrictionType covers all four 2-bit values, so the tryFrom() guard

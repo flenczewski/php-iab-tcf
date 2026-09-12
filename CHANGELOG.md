@@ -5,10 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.1] - 2026-09-12
+## [2.1.0] - 2026-09-12
 
-A validation and documentation pass. No API was removed, but three inputs that
-2.0.0 accepted are now rejected — see **Changed**.
+A validation and documentation pass. No API was removed, but inputs that 2.0.0
+accepted are now rejected — see **Changed**. That is a behaviour break for
+callers relying on the old leniency, so this is a minor, not a patch, release.
 
 ### Fixed
 
@@ -40,6 +41,16 @@ A validation and documentation pass. No API was removed, but three inputs that
 - `TcStringEncoder` duplicated the Core String version literal instead of
   referring to `Spec::CORE_STRING_VERSION`, contradicting `Spec`'s own
   single-source-of-truth docblock.
+- **A timestamp large enough to overflow `EpochTime`'s microsecond arithmetic
+  escaped as a raw `TypeError`.** `getTimestamp() * 1_000_000` turns into a
+  float past ~9.2e12 seconds and `intdiv()` then rejects it, so a microsecond
+  epoch passed where seconds were meant bypassed the "too far in the future"
+  guard entirely and crashed code catching `IabTcfException`.
+- `StreamHttpClient` with `maxResponseBytes: PHP_INT_MAX` threw a `TypeError`
+  from `file_get_contents()`, because the read length is one byte past the
+  limit and that addition overflowed to a float.
+- `Spec` and `TcStringEncoder` documented the timestamp ceiling as ~2187-10-30;
+  it is 2187-10-06T10:21:13Z.
 
 ### Changed
 

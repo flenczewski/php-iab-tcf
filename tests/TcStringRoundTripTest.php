@@ -208,10 +208,11 @@ final class TcStringRoundTripTest extends TestCase
     public function testMalformedPublisherRestrictionPurposeIdIsFunneledIntoInvalidTcString(): void
     {
         // Hand-craft a minimal core segment ending right after a publisher
-        // restriction with purposeId=0 (invalid: PublisherRestriction requires 1..24),
-        // which PublisherRestriction's constructor rejects with the package's
-        // generic InvalidArgumentException. TcStringDecoder::decode() must funnel
-        // that into InvalidTcStringException, not let it leak.
+        // restriction with purposeId=0 (invalid: only 1..24 are defined).
+        // PublisherRestrictionsCodec rejects it during decoding, so what this
+        // pins down is the type callers see — InvalidTcStringException, in line
+        // with every other malformed field in that section. The decoder's
+        // IabTcfException wrapping is covered by testWrappedFailuresKeepTheirOriginalCause().
         $writer = new \Flenczewski\IabTcf\BitWriter();
         $writer->writeUint(\Flenczewski\IabTcf\Spec::CORE_STRING_VERSION, 6); // Version
         $writer->writeUint(0, 36); // Created

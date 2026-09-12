@@ -54,8 +54,11 @@ final class StreamHttpClient implements HttpClient
         ]);
 
         // Read one byte past the limit so an over-long body is detectable
-        // rather than silently truncated into a "corrupt JSON" error.
-        $body = @file_get_contents($url, false, $context, 0, $this->maxResponseBytes + 1);
+        // rather than silently truncated into a "corrupt JSON" error. The min()
+        // keeps that +1 from overflowing to a float for a PHP_INT_MAX limit,
+        // which file_get_contents()'s int $length would reject outright.
+        $readLength = min($this->maxResponseBytes, \PHP_INT_MAX - 1) + 1;
+        $body = @file_get_contents($url, false, $context, 0, $readLength);
         if ($body === false) {
             throw new GvlException(
                 "HTTP request to {$url} failed: the host is unreachable, the request timed out, "

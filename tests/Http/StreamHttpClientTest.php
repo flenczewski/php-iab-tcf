@@ -163,6 +163,15 @@ final class StreamHttpClientTest extends TestCase
         new StreamHttpClient(maxResponseBytes: 0);
     }
 
+    public function testAnIntMaxByteLimitReadsRatherThanOverflowing(): void
+    {
+        // The read length is one byte past the limit, and that addition used to
+        // overflow to a float, which file_get_contents()'s int $length rejects.
+        $body = (new StreamHttpClient(maxResponseBytes: \PHP_INT_MAX))->get($this->baseUrl() . '/bytes/5000');
+
+        self::assertSame(5000, strlen($body));
+    }
+
     public function testRedirectsAreNotFollowedAndSurfaceAsAnError(): void
     {
         // A vendor list served from an unexpected redirect is not something to

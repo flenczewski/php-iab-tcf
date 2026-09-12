@@ -84,7 +84,7 @@ The bit layout of the Core segment itself is unchanged between v2.0 and v2.3 —
 ## Round-tripping
 
 `TcStringEncoder::encode(TcStringDecoder::decode($s)) === $s` holds for any
-**canonically encoded** TC String — which is what conformant CMPs emit, and
+**canonically encoded** TC String whose segments this package models — which is
 what this package's own encoder produces.
 
 It does **not** hold in general, because encoding is canonical: the decoder

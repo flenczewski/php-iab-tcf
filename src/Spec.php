@@ -36,7 +36,7 @@ final class Spec
 
     /**
      * Created and LastUpdated are unsigned 36-bit deciseconds-since-epoch
-     * fields, so the representable window is 1970-01-01 to roughly 2187-10-30.
+     * fields, so the representable window is 1970-01-01 to 2187-10-06T10:21:13Z.
      */
     public const MAX_TIMESTAMP_DECISECONDS = (1 << 36) - 1;
 
