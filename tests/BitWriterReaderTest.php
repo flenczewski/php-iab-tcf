@@ -41,6 +41,35 @@ final class BitWriterReaderTest extends TestCase
         self::assertFalse($reader->readBool());
     }
 
+    /**
+     * Past 63 bits bindec() returns a float and the cast in readUint() turns
+     * it into a wrong integer — 64 set bits read back as 0. BitWriter has
+     * always rejected these widths; the reader must not silently disagree.
+     *
+     * @dataProvider unreadableWidths
+     */
+    public function testReadUintRejectsWidthsItCannotRepresent(int $numBits): void
+    {
+        $this->expectException(\OutOfRangeException::class);
+
+        (new BitReader(str_repeat('1', 80)))->readUint($numBits);
+    }
+
+    /** @return iterable<string,array{int}> */
+    public static function unreadableWidths(): iterable
+    {
+        yield '64 bits' => [64];
+        yield '80 bits' => [80];
+        yield 'negative width' => [-1];
+    }
+
+    public function testReadUintAcceptsTheWidestRepresentableField(): void
+    {
+        $reader = new BitReader(str_repeat('1', 63));
+
+        self::assertSame(PHP_INT_MAX, $reader->readUint(63));
+    }
+
     public function testWriteUintRejectsOutOfRangeValue(): void
     {
         $this->expectException(\InvalidArgumentException::class);

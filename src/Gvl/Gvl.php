@@ -52,6 +52,17 @@ final class Gvl
         return self::$bundled = self::fromJson($json);
     }
 
+    /**
+     * Drops the {@see self::bundled()} cache so the next call re-reads and
+     * re-parses the file. Only useful to keep test cases isolated.
+     *
+     * @internal
+     */
+    public static function resetBundledCache(): void
+    {
+        self::$bundled = null;
+    }
+
     public static function fromJson(string $json): self
     {
         try {
@@ -90,6 +101,11 @@ final class Gvl
             }
             /** @var array<string,mixed> $vendorData */
             $vendor = Vendor::fromArray($vendorData);
+            // The map is keyed by the entry's own id, so two entries claiming
+            // the same id used to collapse into one and silently drop a vendor.
+            if (isset($vendors[$vendor->id])) {
+                throw new GvlException("Global Vendor List declares vendor id {$vendor->id} more than once.");
+            }
             $vendors[$vendor->id] = $vendor;
         }
 
@@ -104,7 +120,9 @@ final class Gvl
 
     private static function toInt(mixed $value, string $field): int
     {
-        if (!is_int($value) && !(is_string($value) && preg_match('/^-?\d+$/', $value) === 1)) {
+        // \z, not $: PCRE's $ also matches before a trailing newline, which
+        // would let "3\n" through and cast to 3, hiding corrupt input.
+        if (!is_int($value) && !(is_string($value) && preg_match('/^-?\d+\z/', $value) === 1)) {
             throw new GvlException(
                 "Global Vendor List \"{$field}\" must be an integer, got " . get_debug_type($value) . '.'
             );

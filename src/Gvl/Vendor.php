@@ -32,8 +32,11 @@ final class Vendor
     /** @param array<string,mixed> $data one entry from the GVL's "vendors" map */
     public static function fromArray(array $data): self
     {
+        // array_key_exists, not isset: a vendor carrying "name": null is
+        // present-but-wrong, and should be reported as such by toString()
+        // rather than as a missing field.
         foreach (['id', 'name'] as $required) {
-            if (!isset($data[$required])) {
+            if (!array_key_exists($required, $data)) {
                 throw new GvlException("Vendor entry is missing the required \"{$required}\" field.");
             }
         }
@@ -73,7 +76,9 @@ final class Vendor
 
     private static function toInt(mixed $value, string $field): int
     {
-        if (!is_int($value) && !(is_string($value) && preg_match('/^-?\d+$/', $value) === 1)) {
+        // \z, not $: PCRE's $ also matches before a trailing newline, which
+        // would let "3\n" through and cast to 3, hiding corrupt input.
+        if (!is_int($value) && !(is_string($value) && preg_match('/^-?\d+\z/', $value) === 1)) {
             throw new GvlException(
                 "Vendor field \"{$field}\" must be an integer, got " . get_debug_type($value) . '.'
             );

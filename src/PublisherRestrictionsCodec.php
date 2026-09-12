@@ -49,7 +49,19 @@ final class PublisherRestrictionsCodec
         $remainingIds = Spec::MAX_PUBLISHER_RESTRICTION_VENDOR_IDS;
 
         for ($i = 0; $i < $numRestrictions; $i++) {
+            // PurposeId is a 6-bit field but only 1..24 are defined, so a
+            // malformed value is a decode error. Left unchecked it reached
+            // PublisherRestriction's constructor and surfaced as a plain
+            // InvalidArgumentException, unlike every other malformed field here.
             $purposeId = $reader->readUint(6);
+            if ($purposeId < 1 || $purposeId > Spec::MAX_PURPOSE_ID) {
+                throw new InvalidTcStringException(sprintf(
+                    'Publisher restriction %d names purpose %d; only 1..%d are defined.',
+                    $i,
+                    $purposeId,
+                    Spec::MAX_PURPOSE_ID,
+                ));
+            }
             // RestrictionType defines all four 2-bit values, so tryFrom() cannot
             // currently fail — the guard is kept (and is therefore not covered)
             // so that removing a case from the enum surfaces as a decode error

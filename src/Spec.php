@@ -34,6 +34,12 @@ final class Spec
     public const MIN_VENDOR_ID = 1;
     public const MAX_VENDOR_ID = 65535;
 
+    /**
+     * Created and LastUpdated are unsigned 36-bit deciseconds-since-epoch
+     * fields, so the representable window is 1970-01-01 to roughly 2187-10-30.
+     */
+    public const MAX_TIMESTAMP_DECISECONDS = (1 << 36) - 1;
+
     /** NumEntries in a range list is a 12-bit field. */
     public const MAX_RANGE_ENTRIES = 4095;
 

@@ -17,6 +17,13 @@ final class BitReader
 
     public function readUint(int $numBits): int
     {
+        // Mirrors BitWriter::writeUint()'s bound. Past 63 bits bindec() returns
+        // a float and the cast below silently yields a wrong value (64 set bits
+        // gave 0), so reject the width rather than hand back a bad integer.
+        if ($numBits < 0 || $numBits > 63) {
+            throw new OutOfRangeException("Field width must be between 0 and 63 bits, got {$numBits}.");
+        }
+
         return (int) bindec($this->readBits($numBits));
     }
 
