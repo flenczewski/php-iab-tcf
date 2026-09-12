@@ -18,7 +18,10 @@ final class Alpha2Code
 
     public static function isValid(string $code): bool
     {
-        return preg_match('/^[A-Za-z]{2}$/', $code) === 1;
+        // \z, not $: PCRE's $ also matches immediately before a trailing
+        // newline, so "EN\n" would validate here and then be silently
+        // truncated to "EN" by the two ord() reads in encode().
+        return preg_match('/^[A-Za-z]{2}\z/', $code) === 1;
     }
 
     public static function encode(string $code): string
@@ -39,7 +42,8 @@ final class Alpha2Code
     {
         $letters = '';
         foreach ([$reader->readUint(6), $reader->readUint(6)] as $position => $value) {
-            if ($value < 0 || $value > 25) {
+            // readUint(6) cannot be negative, so only the upper bound is checked.
+            if ($value > 25) {
                 throw new InvalidTcStringException(
                     "Letter {$position} of a 2-letter code decoded to {$value}; only 0..25 (A..Z) are valid."
                 );

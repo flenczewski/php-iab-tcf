@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Flenczewski\IabTcf\Tests\Http;
 
 use Flenczewski\IabTcf\Exception\GvlException;
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 use Flenczewski\IabTcf\Http\StreamHttpClient;
 use PHPUnit\Framework\TestCase;
 
@@ -124,6 +125,94 @@ final class StreamHttpClientTest extends TestCase
         $this->expectExceptionMessage("returned status {$status}");
 
         (new StreamHttpClient())->get($this->baseUrl() . '/status/' . $status);
+    }
+
+    /**
+     * Everything else in this package bounds what untrusted input can make it
+     * allocate; an unbounded file_get_contents() was the one gap. A hostile or
+     * misconfigured endpoint should not be able to stream the process to death.
+     */
+    public function testAResponseAboveTheByteLimitIsRefused(): void
+    {
+        $this->expectException(GvlException::class);
+        $this->expectExceptionMessage('exceeds the 100-byte limit');
+
+        (new StreamHttpClient(maxResponseBytes: 100))->get($this->baseUrl() . '/bytes/5000');
+    }
+
+    public function testAResponseExactlyAtTheByteLimitIsAccepted(): void
+    {
+        $body = (new StreamHttpClient(maxResponseBytes: 100))->get($this->baseUrl() . '/bytes/100');
+
+        self::assertSame(100, strlen($body));
+    }
+
+    public function testTheDefaultLimitDoesNotInterfereWithARealisticPayload(): void
+    {
+        $body = (new StreamHttpClient())->get($this->baseUrl() . '/bytes/5000');
+
+        self::assertSame(5000, strlen($body));
+    }
+
+    public function testRejectsANonPositiveByteLimit(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('maxResponseBytes must be at least 1');
+
+        /** @phpstan-ignore argument.type (the runtime guard is what is under test) */
+        new StreamHttpClient(maxResponseBytes: 0);
+    }
+
+    public function testAnIntMaxByteLimitReadsWhatWasSentRatherThanReservingTheLimit(): void
+    {
+        // The limit used to be passed to file_get_contents() as $maxlen, which
+        // PHP allocates up front before 8.3 — so this died with "Out of memory
+        // (tried to allocate 9223372036854775832 bytes)" rather than reading
+        // 5000 bytes. Streaming makes the footprint follow the response.
+        $body = (new StreamHttpClient(maxResponseBytes: \PHP_INT_MAX))->get($this->baseUrl() . '/bytes/5000');
+
+        self::assertSame(5000, strlen($body));
+    }
+
+    public function testATruncatedResponseIsRejectedRatherThanReturnedAsComplete(): void
+    {
+        // feof() also becomes true when the peer hangs up mid-body, so a
+        // half-delivered vendor list used to come back looking complete.
+        $probe = @stream_socket_server('tcp://127.0.0.1:0', $errno, $errstr);
+        if ($probe === false) {
+            self::markTestSkipped('Could not bind a port for the truncating server.');
+        }
+        $name = stream_socket_get_name($probe, false);
+        fclose($probe);
+        $port = (int) substr((string) $name, strrpos((string) $name, ':') + 1);
+
+        $server = @proc_open(
+            ['php', __DIR__ . '/fixtures/truncating-server.php', (string) $port],
+            [1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']],
+            $pipes,
+        );
+        if (!is_resource($server)) {
+            self::markTestSkipped('Could not start the truncating server.');
+        }
+
+        try {
+            for ($i = 0; $i < 100; $i++) {
+                $sock = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.1);
+                if ($sock !== false) {
+                    fclose($sock);
+                    break;
+                }
+                usleep(50_000);
+            }
+
+            $this->expectException(GvlException::class);
+            $this->expectExceptionMessage('is 10 bytes but declared Content-Length: 100000');
+
+            (new StreamHttpClient(timeoutSeconds: 3.0))->get("http://127.0.0.1:{$port}/vendor-list.json");
+        } finally {
+            proc_terminate($server);
+            proc_close($server);
+        }
     }
 
     public function testRedirectsAreNotFollowedAndSurfaceAsAnError(): void

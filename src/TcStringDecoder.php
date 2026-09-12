@@ -73,9 +73,14 @@ final class TcStringDecoder
         $publisherRestrictions = PublisherRestrictionsCodec::decode($core);
 
         // Absent Disclosed Vendors segment stays null so that decode()->encode()
-        // reproduces the input byte-for-byte. TCF v2.3 made the segment
+        // does not silently append an empty one, changing its meaning from
+        // "unknown" to "zero vendors disclosed". TCF v2.3 made the segment
         // mandatory for *new* strings (TcModel defaults to []), but decoding
         // must stay backward compatible with v2.0-v2.2 strings.
+        //
+        // Note this preserves the segment's *presence*, not the input verbatim:
+        // re-encoding is canonical, so a non-canonical input comes back
+        // normalised. See README "Round-tripping" for the exact guarantee.
         $disclosedVendors = null;
         $allowedVendors = null;
 
@@ -92,6 +97,9 @@ final class TcStringDecoder
         for ($i = 1; $i < count($segments); $i++) {
             $reader = new BitReader(Base64Url::decodeToBits($segments[$i]));
             $segmentType = $reader->readUint(3);
+            // Segment order is not preserved on re-encode: the encoder always
+            // emits Disclosed Vendors before Allowed Vendors. The spec does not
+            // fix an order, so accepting either here is deliberate.
 
             // Each type may appear once. Repeats used to silently overwrite the
             // previous value, and let a caller multiply the decode cost of a

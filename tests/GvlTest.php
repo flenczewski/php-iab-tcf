@@ -169,4 +169,92 @@ final class GvlTest extends TestCase
     {
         self::assertSame(Gvl::bundled(), Gvl::bundled());
     }
+
+    public function testResetBundledCacheForcesAReparse(): void
+    {
+        $first = Gvl::bundled();
+        Gvl::resetBundledCache();
+        $second = Gvl::bundled();
+
+        self::assertNotSame($first, $second, 'The cache should have been dropped.');
+        self::assertSame($first->vendorListVersion, $second->vendorListVersion);
+    }
+
+    /**
+     * The vendor map is keyed by each entry's own id, so two entries claiming
+     * the same id used to overwrite one another and silently drop a vendor.
+     */
+    public function testRejectsDuplicateVendorIds(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\GvlException::class);
+        $this->expectExceptionMessage('declares vendor id 1 more than once');
+
+        Gvl::fromJson(
+            '{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":4,'
+            . '"lastUpdated":"2026-01-01T00:00:00Z",'
+            . '"vendors":{"1":{"id":1,"name":"A"},"2":{"id":1,"name":"B"}}}'
+        );
+    }
+
+    /**
+     * A digit string past PHP_INT_MAX saturates on cast instead of failing, so
+     * the vendor used to land in the map keyed by PHP_INT_MAX and every consent
+     * check for it silently answered "not on the list". The same value spelled
+     * as a JSON number is rejected as a float, so the string spelling must not
+     * be a way around that.
+     */
+    public function testRejectsAnIntegerStringThatWouldSaturateOnCast(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\GvlException::class);
+        $this->expectExceptionMessage('not representable as an integer');
+
+        Gvl::fromJson(
+            '{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":4,'
+            . '"lastUpdated":"2026-01-01T00:00:00Z",'
+            . '"vendors":{"1":{"id":"99999999999999999999999","name":"A"}}}'
+        );
+    }
+
+    public function testRejectsANonPositiveVendorId(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\GvlException::class);
+        $this->expectExceptionMessage('declares id 0; vendor ids start at 1');
+
+        Gvl::fromJson(
+            '{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":4,'
+            . '"lastUpdated":"2026-01-01T00:00:00Z","vendors":{"0":{"id":0,"name":"A"}}}'
+        );
+    }
+
+    public function testAVendorWithANullNameIsReportedAsAWrongTypeNotAMissingField(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\GvlException::class);
+        $this->expectExceptionMessage('"name" must be a string, got null');
+
+        Gvl::fromJson(
+            '{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":4,'
+            . '"lastUpdated":"2026-01-01T00:00:00Z","vendors":{"1":{"id":1,"name":null}}}'
+        );
+    }
+
+    /**
+     * PCRE's $ matches before a trailing newline, so the numeric-string check
+     * used to accept "3\n" and cast it to 3.
+     */
+    public function testRejectsANumericFieldWithATrailingNewline(): void
+    {
+        $this->expectException(\Flenczewski\IabTcf\Exception\GvlException::class);
+        $this->expectExceptionMessage('"gvlSpecificationVersion" must be an integer');
+
+        $json = json_encode([
+            'gvlSpecificationVersion' => "3\n",
+            'vendorListVersion' => 1,
+            'tcfPolicyVersion' => 4,
+            'lastUpdated' => '2026-01-01T00:00:00Z',
+            'vendors' => new \stdClass(),
+        ]);
+        self::assertIsString($json);
+
+        Gvl::fromJson($json);
+    }
 }

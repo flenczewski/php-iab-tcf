@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf\Gvl;
 
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 use Flenczewski\IabTcf\Http\HttpClient;
 use Flenczewski\IabTcf\Http\StreamHttpClient;
 
@@ -58,6 +59,12 @@ final class GvlFetcher
 
     public static function urlForVersion(int $version): string
     {
+        // Vendor list versions start at 1. Without this a negative value built
+        // ".../vendor-list-v-1.json" and the mistake only surfaced as a 404.
+        if ($version < 1) {
+            throw new InvalidArgumentException("Vendor list version must be 1 or greater, got {$version}.");
+        }
+
         return self::BASE_URL . "archives/vendor-list-v{$version}.json";
     }
 

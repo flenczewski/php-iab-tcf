@@ -54,7 +54,12 @@ final class RangeSection
             return $reader->readIdSet($maxVendorId);
         }
 
-        return self::decodeRangeList($reader);
+        // MaxVendorId is normative: the spec defines it as the largest vendor id
+        // represented in this section, so an entry above it makes the section
+        // self-contradictory. Passing it down is what keeps the bitfield and
+        // range encodings of the same section agreeing on their id space — a
+        // bitfield physically cannot exceed it, a range list otherwise can.
+        return self::decodeRangeList($reader, Spec::MAX_VENDOR_ID, $maxVendorId);
     }
 
     /**
@@ -108,10 +113,19 @@ final class RangeSection
      *                    Callers that decode several range lists from one
      *                    string (see PublisherRestrictionsCodec) pass their
      *                    remaining budget so the totals cannot be multiplied.
+     * @param int|null $maxVendorId ceiling on the largest id any entry may name.
+     *                              Defaults to the 16-bit maximum. A vendor
+     *                              section passes its own declared MaxVendorId;
+     *                              publisher restriction lists have no such
+     *                              field and leave this at the default.
      * @return int[]
      */
-    public static function decodeRangeList(BitReader $reader, int $maxIds = Spec::MAX_VENDOR_ID): array
-    {
+    public static function decodeRangeList(
+        BitReader $reader,
+        int $maxIds = Spec::MAX_VENDOR_ID,
+        ?int $maxVendorId = null,
+    ): array {
+        $maxVendorId ??= Spec::MAX_VENDOR_ID;
         $numEntries = $reader->readUint(12);
         $entries = [];
         $total = 0;
@@ -137,10 +151,14 @@ final class RangeSection
                     "Range entry {$i} ends at {$end}, before its start {$start}."
                 );
             }
-            // No upper-bound check is needed here: both ids come from
-            // readUint(16), and Spec::MAX_VENDOR_ID *is* the 16-bit maximum, so
-            // $end can never exceed it. An unreachable branch in this loop would
-            // be untestable code in the one function that has to be airtight.
+            // Against the default 16-bit ceiling this cannot trigger — both ids
+            // come from readUint(16) — but a vendor section passes its own
+            // declared MaxVendorId, which is usually far smaller.
+            if ($end > $maxVendorId) {
+                throw new InvalidTcStringException(
+                    "Range entry {$i} names vendor id {$end}, above the section's maximum of {$maxVendorId}."
+                );
+            }
 
             $total += $end - $start + 1;
             if ($total > $maxIds) {

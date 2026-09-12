@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Flenczewski\IabTcf\Tests;
 
 use Flenczewski\IabTcf\BitReader;
+use Flenczewski\IabTcf\BitWriter;
+use Flenczewski\IabTcf\Exception\InvalidTcStringException;
 use Flenczewski\IabTcf\RangeSection;
 use PHPUnit\Framework\TestCase;
 
@@ -36,6 +38,67 @@ final class RangeSectionTest extends TestCase
         $ids = range(10, 25);
         $bits = RangeSection::encode($ids);
         self::assertSame($ids, RangeSection::decode(new BitReader($bits)));
+    }
+
+    /**
+     * The spec defines MaxVendorId as the largest id represented in the
+     * section, so a range entry above it makes the section self-contradictory.
+     * It also used to be silently "repaired": re-encoding the decoded ids
+     * emitted a different MaxVendorId than the input carried.
+     */
+    public function testRejectsARangeEntryAboveTheDeclaredMaxVendorId(): void
+    {
+        $bits = (new BitWriter())
+            ->writeUint(10, 16)     // MaxVendorId
+            ->writeBool(true)       // IsRangeEncoding
+            ->writeUint(1, 12)      // NumEntries
+            ->writeBool(false)->writeUint(60000, 16)
+            ->toBitString();
+
+        $this->expectException(InvalidTcStringException::class);
+        $this->expectExceptionMessage("above the section's maximum of 10");
+
+        RangeSection::decode(new BitReader($bits));
+    }
+
+    public function testRejectsARangeWhoseEndCrossesTheDeclaredMaxVendorId(): void
+    {
+        $bits = (new BitWriter())
+            ->writeUint(10, 16)
+            ->writeBool(true)
+            ->writeUint(1, 12)
+            ->writeBool(true)->writeUint(8, 16)->writeUint(12, 16)
+            ->toBitString();
+
+        $this->expectException(InvalidTcStringException::class);
+
+        RangeSection::decode(new BitReader($bits));
+    }
+
+    public function testAcceptsARangeEntryExactlyAtTheDeclaredMaxVendorId(): void
+    {
+        $bits = (new BitWriter())
+            ->writeUint(10, 16)
+            ->writeBool(true)
+            ->writeUint(1, 12)
+            ->writeBool(true)->writeUint(8, 16)->writeUint(10, 16)
+            ->toBitString();
+
+        self::assertSame([8, 9, 10], RangeSection::decode(new BitReader($bits)));
+    }
+
+    /**
+     * Publisher restriction range lists carry no MaxVendorId preamble, so the
+     * standalone codec must keep defaulting to the full 16-bit space.
+     */
+    public function testStandaloneRangeListStillAllowsTheFullVendorSpace(): void
+    {
+        $bits = (new BitWriter())
+            ->writeUint(1, 12)
+            ->writeBool(false)->writeUint(65535, 16)
+            ->toBitString();
+
+        self::assertSame([65535], RangeSection::decodeRangeList(new BitReader($bits)));
     }
 
     public function testDuplicatesAndUnsortedInputAreNormalized(): void

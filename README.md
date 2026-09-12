@@ -75,11 +75,37 @@ Decoding stays backward compatible, and distinguishes the two cases:
 | `null` | The decoded string carried **no** Disclosed Vendors segment (pre-v2.3) |
 | `[]` | The segment was **present** and disclosed no vendors |
 
-Keeping them distinct is what makes a decode/encode cycle reproduce a pre-v2.3
-string byte for byte, rather than silently appending an empty segment and
-changing its meaning from "unknown" to "zero vendors disclosed".
+Keeping them distinct is what stops a decode/encode cycle from silently
+appending an empty segment to a pre-v2.3 string and changing its meaning from
+"unknown" to "zero vendors disclosed".
 
 The bit layout of the Core segment itself is unchanged between v2.0 and v2.3 — only the mandatoriness of this one segment changed. This library does **not** hardcode a single "correct" `tcfPolicyVersion` for you: that value should be sourced from the Global Vendor List you're operating against (`Gvl::$tcfPolicyVersion`, see below), since it can change between GVL releases.
+
+## Round-tripping
+
+`TcStringEncoder::encode(TcStringDecoder::decode($s)) === $s` holds for any
+**canonically encoded** TC String whose segments this package models — which is
+what this package's own encoder produces.
+
+It does **not** hold in general, because encoding is canonical: the decoder
+accepts several inputs that mean the same thing and the encoder emits only one
+of them. Concretely, a re-encoded string differs from its input when the input:
+
+| Input property | What re-encoding does |
+|---|---|
+| Carries a Publisher TC segment (type 3) | Drops it — the segment is not modelled (see "Known limitations") |
+| Orders segments Allowed Vendors before Disclosed Vendors | Emits Disclosed Vendors first |
+| Range-encodes a vendor section where a bitfield would be shorter (or vice versa) | Picks whichever encoding is smaller |
+| Has overlapping, unsorted or duplicated range entries | Normalises them to a sorted, de-duplicated set |
+| Pads the Core segment with more trailing bits than base64 alignment requires | Emits only the alignment padding |
+
+All five are lossless as far as the *decoded model* is concerned — the same
+`TcModel` comes back either way. **Do not** use a re-encoded string to test
+whether two cookies are equal, or as a cache key derived from a third-party
+string; compare the decoded `TcModel` fields instead.
+
+Trailing bits beyond the Core segment's fields are ignored rather than
+rejected, since base64 padding already makes the segment length inexact.
 
 ## Global Vendor List (GVL)
 
@@ -203,9 +229,14 @@ what it will allocate: a range list is checked against the 16-bit vendor id
 space *before* it is expanded, so a small hostile string cannot inflate into a
 huge array.
 
-Version 1.x did not do this and is vulnerable to memory exhaustion. See
-[SECURITY.md](SECURITY.md) for the supported versions and how to report a
-vulnerability.
+A vendor section's declared `MaxVendorId` is enforced against its range
+entries, so a section cannot name ids outside the space it claims. `GvlFetcher`
+bounds the response body it will buffer (`StreamHttpClient`, 64 MB by default,
+configurable via `maxResponseBytes`).
+
+Version 1.x did not bound range expansion at all and is vulnerable to memory
+exhaustion. See [SECURITY.md](SECURITY.md) for the supported versions and how
+to report a vulnerability.
 
 ## Versioning
 
@@ -224,7 +255,13 @@ steps in [UPGRADE-2.0.md](UPGRADE-2.0.md).
 
 ## Known limitations
 
-- **Publisher TC segment (segment type 3) is not implemented.** If present in a decoded TC String, it is silently skipped; `TcModel` has no fields for publisher-specific purposes/custom purposes. Contributions welcome.
+- **Publisher TC segment (segment type 3) is not implemented.** If present in a decoded TC String, it is skipped, and re-encoding the model **drops it** — see [Round-tripping](#round-tripping). `TcModel` has no fields for publisher-specific purposes/custom purposes. Contributions welcome.
+- **Enforcing `MaxVendorId` can reject strings 2.0.0 decoded.** A vendor section
+  whose range entries name ids above its own declared `MaxVendorId` is
+  non-conformant, but the reference implementation (`iabtcf-es`) does not reject
+  it — so a third-party cookie produced through it decoded in 2.0.0 and now
+  raises `InvalidTcStringException`. Worth exercising against a sample of real
+  traffic when upgrading.
 - Only Core String **version 2** is supported (the only version defined by TCF v2.x). Decoding a v1 or other-version string throws `InvalidTcStringException`.
 - `Vendor`/`Gvl` model only the fields relevant to consent validation (ids, names, purpose/feature associations) — not the full GVL schema (illustrations, `dataDeclaration`, `dataRetention`, `standardTexts`, etc). Use `GvlFetcher::fetchLatestRaw()`/`fetchVersionRaw()` if you need the untouched raw JSON.
 

@@ -78,10 +78,12 @@ $model = TcStringDecoder::decode($preV23String);
 $model->disclosedVendors;
 ```
 
-`null` means *absent*; `[]` means *present but empty*. This is what makes
-`decode()` → `encode()` reproduce a pre-v2.3 string byte for byte. Newly
-constructed models still default to `[]`, so they keep emitting the segment as
-TCF v2.3 requires.
+`null` means *absent*; `[]` means *present but empty*. This is what stops
+`decode()` → `encode()` from appending a segment a pre-v2.3 string never had
+and changing its meaning from "unknown" to "zero vendors disclosed". (It does
+not make the cycle byte-exact in general — see
+[Round-tripping](README.md#round-tripping).) Newly constructed models still
+default to `[]`, so they keep emitting the segment as TCF v2.3 requires.
 
 ```php
 // Before

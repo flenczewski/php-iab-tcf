@@ -33,7 +33,9 @@ final class TcModel implements \JsonSerializable
      *                                     `null` to omit the segment entirely for pre-v2.3 wire compatibility.
      *                                     TcStringDecoder sets this to `null` when the decoded string carried no
      *                                     such segment, so `null` means "absent" and `[]` means "present but
-     *                                     empty" — keeping decode()->encode() bit-stable.
+     *                                     empty" — which is what keeps a decode/encode cycle from inventing a
+     *                                     segment the input never had. See README "Round-tripping" for the
+     *                                     limits of that guarantee.
      * @param int[]|null $allowedVendors vendor ids allowed by the publisher (segment type 2); null omits the segment
      */
     public function __construct(
