@@ -1,8 +1,8 @@
 {
     "gvlSpecificationVersion": 3,
-    "vendorListVersion": 176,
+    "vendorListVersion": 177,
     "tcfPolicyVersion": 5,
-    "lastUpdated": "2026-09-10T16:00:18Z",
+    "lastUpdated": "2026-09-17T16:00:19Z",
     "purposes": {
         "1": {
             "id": 1,
@@ -1756,7 +1756,7 @@
         },
         "24": {
             "id": 24,
-            "name": "Epsilon",
+            "name": "Epsilon International UK Ltd",
             "purposes": [
                 1,
                 2,
@@ -18726,7 +18726,7 @@
         },
         "568": {
             "id": 568,
-            "name": "Next Different SpA",
+            "name": "Be Closer S.p.A. Società Benefit",
             "purposes": [
                 1,
                 2,
@@ -18757,7 +18757,8 @@
             "urls": [
                 {
                     "langId": "it",
-                    "privacy": "https://next14.com/media/privacy"
+                    "privacy": "https://next14.com/media/privacy",
+                    "legIntClaim": "https://next14.com/media/privacy"
                 }
             ],
             "usesNonCookieAccess": true,
@@ -38825,12 +38826,12 @@
                 1,
                 3,
                 4,
-                7,
-                9,
-                10
+                9
             ],
             "legIntPurposes": [
-                2
+                2,
+                7,
+                10
             ],
             "flexiblePurposes": [
                 2,
@@ -41220,7 +41221,8 @@
                 1,
                 2,
                 3,
-                4
+                4,
+                7
             ],
             "legIntPurposes": [],
             "flexiblePurposes": [],
@@ -62912,8 +62914,8 @@
             "specialFeatures": [
                 2
             ],
-            "cookieMaxAgeSeconds": null,
-            "usesCookies": false,
+            "cookieMaxAgeSeconds": 604800,
+            "usesCookies": true,
             "cookieRefresh": false,
             "urls": [
                 {
@@ -64518,6 +64520,168 @@
                 11
             ],
             "deviceStorageDisclosureUrl": "https://solynto.com/deviceStorage.json"
+        },
+        "1643": {
+            "id": 1643,
+            "name": "Utiq SA/NV",
+            "purposes": [
+                1,
+                2,
+                3,
+                4,
+                7,
+                9,
+                10
+            ],
+            "legIntPurposes": [],
+            "flexiblePurposes": [],
+            "specialPurposes": [
+                1,
+                3
+            ],
+            "features": [
+                1,
+                2,
+                3
+            ],
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": 33696000,
+            "usesCookies": true,
+            "cookieRefresh": true,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://consenthub.utiq.com/pages/privacy-statement",
+                    "legIntClaim": "https://consenthub.utiq.com/pages/privacy-statement"
+                },
+                {
+                    "langId": "es",
+                    "privacy": "https://consenthub.utiq.com/pages/privacy-statement",
+                    "legIntClaim": "https://consenthub.utiq.com/pages/privacy-statement"
+                },
+                {
+                    "langId": "de",
+                    "privacy": "https://consenthub.utiq.com/pages/privacy-statement",
+                    "legIntClaim": "https://consenthub.utiq.com/pages/privacy-statement"
+                },
+                {
+                    "langId": "fr",
+                    "privacy": "https://consenthub.utiq.com/pages/privacy-statement",
+                    "legIntClaim": "https://consenthub.utiq.com/pages/privacy-statement"
+                },
+                {
+                    "langId": "it",
+                    "privacy": "https://consenthub.utiq.com/pages/privacy-statement",
+                    "legIntClaim": "https://consenthub.utiq.com/pages/privacy-statement"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 90,
+                "purposes": [],
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                3,
+                5,
+                6,
+                10,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://utiqcontent.com/deviceStorage.json"
+        },
+        "1644": {
+            "id": 1644,
+            "name": "Boola GmbH",
+            "purposes": [
+                1,
+                2,
+                3,
+                4,
+                7,
+                9,
+                10
+            ],
+            "legIntPurposes": [],
+            "flexiblePurposes": [],
+            "specialPurposes": [],
+            "features": [
+                1,
+                2,
+                3
+            ],
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": 180,
+            "usesCookies": true,
+            "cookieRefresh": false,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://acheron-ai.tech/privacy.html",
+                    "legIntClaim": ""
+                }
+            ],
+            "usesNonCookieAccess": false,
+            "dataRetention": {
+                "stdRetention": 90,
+                "purposes": {
+                    "3": 30,
+                    "4": 30,
+                    "7": 180
+                },
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                3,
+                4,
+                8,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://acheron-ai.tech/privacy.json"
+        },
+        "1645": {
+            "id": 1645,
+            "name": "Metica Trading Limited",
+            "purposes": [
+                1
+            ],
+            "legIntPurposes": [
+                7,
+                10
+            ],
+            "flexiblePurposes": [],
+            "specialPurposes": [
+                1,
+                2
+            ],
+            "features": [],
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": null,
+            "usesCookies": false,
+            "cookieRefresh": false,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://www.metica.com/legal/privacy-policy",
+                    "legIntClaim": "https://www.metica.com/legal/privacy-policy"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 28,
+                "purposes": [],
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                8
+            ],
+            "deviceStorageDisclosureUrl": "https://metica.com/devicestoragedisclosure.json"
         }
     }
 }
