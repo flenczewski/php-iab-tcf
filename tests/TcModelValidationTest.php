@@ -103,4 +103,29 @@ final class TcModelValidationTest extends TestCase
 
         new PublisherRestriction(1, RestrictionType::REQUIRE_CONSENT, [0]);
     }
+
+    /**
+     * TcModel rejects non-integer ids, but PublisherRestriction did not, so a
+     * numeric string or a float reached BitWriter at encode time and escaped
+     * as a raw TypeError instead of an IabTcfException.
+     *
+     * @dataProvider nonIntegerVendorIds
+     */
+    public function testPublisherRestrictionRejectsNonIntegerVendorIds(mixed $vendorId): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('vendorIds must contain only integers');
+
+        /** @phpstan-ignore argument.type (deliberately passing the wrong element type) */
+        new PublisherRestriction(1, RestrictionType::REQUIRE_CONSENT, [1, $vendorId]);
+    }
+
+    /** @return iterable<string,array{mixed}> */
+    public static function nonIntegerVendorIds(): iterable
+    {
+        yield 'numeric string' => ['5'];
+        yield 'float' => [1.5];
+        yield 'whole float' => [2.0];
+        yield 'null' => [null];
+    }
 }

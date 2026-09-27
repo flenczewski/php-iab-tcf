@@ -22,6 +22,11 @@ final class PublisherRestriction
         }
 
         foreach ($vendorIds as $vendorId) {
+            // Checked here, as TcModel does for its own id lists: otherwise a
+            // numeric string or float only fails at encode time, as a TypeError.
+            if (!is_int($vendorId)) {
+                throw new InvalidArgumentException('vendorIds must contain only integers.');
+            }
             if ($vendorId < Spec::MIN_VENDOR_ID || $vendorId > Spec::MAX_VENDOR_ID) {
                 throw new InvalidArgumentException(
                     'vendorIds must be between ' . Spec::MIN_VENDOR_ID . ' and ' . Spec::MAX_VENDOR_ID
