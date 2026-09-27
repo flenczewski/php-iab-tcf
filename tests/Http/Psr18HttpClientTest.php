@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Flenczewski\IabTcf\Tests\Http;
 
 use Flenczewski\IabTcf\Exception\GvlException;
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 use Flenczewski\IabTcf\Http\Psr18HttpClient;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
@@ -79,5 +80,49 @@ final class Psr18HttpClientTest extends TestCase
             self::assertStringContainsString('connection refused', $e->getMessage());
             self::assertSame($cause, $e->getPrevious(), 'The transport failure must be preserved.');
         }
+    }
+
+    public function testAResponseAboveTheByteLimitIsRefused(): void
+    {
+        $client = new RecordingPsr18Client(new Response(200, [], str_repeat('x', 5000)));
+
+        $this->expectException(GvlException::class);
+        $this->expectExceptionMessage('exceeds the 100-byte limit');
+
+        (new Psr18HttpClient($client, new Psr17Factory(), maxResponseBytes: 100))->get('https://example.test/l');
+    }
+
+    /** A body of unknown size (a live network stream) is cut off while it is read, not after. */
+    public function testABodyOfUnknownSizeIsRefusedWhileItIsRead(): void
+    {
+        $unsized = new UnsizedStream((new Psr17Factory())->createStream(str_repeat('x', 200_000)));
+        $client = new RecordingPsr18Client((new Response(200))->withBody($unsized));
+
+        try {
+            (new Psr18HttpClient($client, new Psr17Factory(), maxResponseBytes: 100))->get('https://example.test/l');
+            self::fail('Expected a GvlException.');
+        } catch (GvlException $e) {
+            self::assertStringContainsString('exceeds the 100-byte limit', $e->getMessage());
+            self::assertLessThan(200_000, $unsized->bytesRead, 'Reading must stop at the limit.');
+        }
+    }
+
+    public function testAResponseExactlyAtTheByteLimitIsAccepted(): void
+    {
+        $client = new RecordingPsr18Client(new Response(200, [], str_repeat('x', 100)));
+
+        $body = (new Psr18HttpClient($client, new Psr17Factory(), maxResponseBytes: 100))
+            ->get('https://example.test/l');
+
+        self::assertSame(100, strlen($body));
+    }
+
+    public function testRejectsANonPositiveByteLimit(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('maxResponseBytes must be at least 1');
+
+        /** @phpstan-ignore argument.type (the runtime guard is what is under test) */
+        new Psr18HttpClient(new RecordingPsr18Client(new Response(200)), new Psr17Factory(), maxResponseBytes: 0);
     }
 }

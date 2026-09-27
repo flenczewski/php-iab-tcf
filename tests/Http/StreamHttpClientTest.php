@@ -224,4 +224,57 @@ final class StreamHttpClientTest extends TestCase
 
         (new StreamHttpClient())->get($this->baseUrl() . '/redirect');
     }
+
+    /**
+     * The stream wrapper's timeout bounds each read, not the request: a server
+     * trickling one byte just inside it could hold the call open indefinitely.
+     */
+    public function testASlowlyDrippedBodyIsCutOffByTheTotalTimeout(): void
+    {
+        $this->expectException(GvlException::class);
+        $this->expectExceptionMessage('did not complete within 0.5 seconds');
+
+        $start = microtime(true);
+        try {
+            (new StreamHttpClient(timeoutSeconds: 5.0, totalTimeoutSeconds: 0.5))
+                ->get($this->baseUrl() . '/drip/20');
+        } finally {
+            self::assertLessThan(2.0, microtime(true) - $start, 'The deadline must bound the whole call.');
+        }
+    }
+
+    public function testABodyThatArrivesWithinTheTotalTimeoutIsReturned(): void
+    {
+        self::assertSame(
+            'xx',
+            (new StreamHttpClient(totalTimeoutSeconds: 5.0))->get($this->baseUrl() . '/drip/2'),
+        );
+    }
+
+    /** @dataProvider nonPositiveTimeouts */
+    public function testRejectsANonPositiveTimeout(string $parameter, float $value): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("{$parameter} must be greater than 0");
+
+        new StreamHttpClient(...[$parameter => $value]);
+    }
+
+    /** @return iterable<string,array{string,float}> */
+    public static function nonPositiveTimeouts(): iterable
+    {
+        yield 'per-read zero' => ['timeoutSeconds', 0.0];
+        yield 'total negative' => ['totalTimeoutSeconds', -1.0];
+    }
+
+    public function testAFailedOpenReportsWhatWentWrong(): void
+    {
+        try {
+            (new StreamHttpClient())->get('file:///nonexistent/iab-tcf/vendor-list.json');
+            self::fail('Expected a GvlException.');
+        } catch (GvlException $e) {
+            // The underlying warning used to be suppressed and discarded.
+            self::assertStringContainsString('No such file or directory', $e->getMessage());
+        }
+    }
 }
