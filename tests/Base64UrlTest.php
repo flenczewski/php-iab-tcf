@@ -41,4 +41,25 @@ final class Base64UrlTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         Base64Url::decodeToBits('not-valid-base64-!!!');
     }
+
+    /** Every byte value must map to its own 8-bit, MSB-first spelling — in both directions. */
+    public function testEveryByteValueRoundTrips(): void
+    {
+        $bytes = '';
+        $bits = '';
+        for ($byte = 0; $byte < 256; $byte++) {
+            $bytes .= chr($byte);
+            $bits .= str_pad(decbin($byte), 8, '0', STR_PAD_LEFT);
+        }
+        $encoded = rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=');
+
+        self::assertSame($bits, Base64Url::decodeToBits($encoded));
+        self::assertSame($encoded, Base64Url::encodeBits($bits));
+    }
+
+    public function testEmptyInputRoundTrips(): void
+    {
+        self::assertSame('', Base64Url::encodeBits(''));
+        self::assertSame('', Base64Url::decodeToBits(''));
+    }
 }
