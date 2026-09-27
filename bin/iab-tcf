@@ -3,17 +3,28 @@
 
 declare(strict_types=1);
 
-$autoloadCandidates = [
-    __DIR__ . '/../vendor/autoload.php',   // running from a checkout of this package
+$ownCheckoutAutoload = __DIR__ . '/../vendor/autoload.php';
+$autoloadCandidates = array_filter([
+    // Set by Composer's vendor/bin proxy (Composer 2.2+); the only candidate
+    // that is right for a project with a custom vendor-dir.
+    is_string($GLOBALS['_composer_autoload_path'] ?? null) ? $GLOBALS['_composer_autoload_path'] : null,
+    $ownCheckoutAutoload,                  // running from a checkout of this package
     __DIR__ . '/../../../autoload.php',    // installed as a dependency (vendor/flenczewski/php-iab-tcf/bin/iab-tcf)
-];
+]);
 
+$loadedAutoload = null;
 foreach ($autoloadCandidates as $candidate) {
     if (is_file($candidate)) {
         require $candidate;
+        $loadedAutoload = $candidate;
         break;
     }
 }
+
+// Only a checkout of this package owns resources/vendor-list.json. Installed
+// as a dependency, that file sits inside vendor/ and is not the caller's to
+// rewrite, so update-gvl needs an explicit path there.
+define('IAB_TCF_OWN_CHECKOUT', $loadedAutoload === $ownCheckoutAutoload);
 
 if (!class_exists(Flenczewski\IabTcf\TcStringDecoder::class)) {
     fwrite(STDERR, "Could not locate the Composer autoloader. Run `composer install` first.\n");
@@ -31,7 +42,7 @@ function usage(): string
     Usage:
       iab-tcf decode <tc-string>     Decode a TC String and print it as JSON.
       iab-tcf update-gvl [path]      Fetch the latest Global Vendor List and write the raw JSON to <path>
-                                      (default: resources/vendor-list.json).
+                                      (default, in a checkout of this package only: resources/vendor-list.json).
 
     TXT;
 }
@@ -52,13 +63,19 @@ function runDecode(?string $tcString): int
         return 1;
     }
 
-    echo json_encode($model, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
+    echo json_encode($model, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
 
     return 0;
 }
 
 function runUpdateGvl(?string $targetPath): int
 {
+    if ($targetPath === null && !IAB_TCF_OWN_CHECKOUT) {
+        fwrite(STDERR, "Error: update-gvl needs an output path when this package is installed as a dependency.\n\n"
+            . usage());
+
+        return 1;
+    }
     $target = $targetPath ?? dirname(__DIR__) . '/resources/vendor-list.json';
 
     try {
@@ -72,15 +89,22 @@ function runUpdateGvl(?string $targetPath): int
         // Re-encode (rather than writing the raw response verbatim) so the file
         // has stable, diff-friendly formatting regardless of how the server sent it.
         $decoded = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
+        $formatted = json_encode(
+            $decoded,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR,
+        ) . "\n";
     } catch (IabTcfException | JsonException $e) {
         fwrite(STDERR, "Error fetching the Global Vendor List: {$e->getMessage()}\n");
 
         return 1;
     }
 
-    $formatted = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n";
-
-    if (file_put_contents($target, $formatted) === false) {
+    // Write beside the target, then rename over it: rename() within one
+    // directory is atomic, so an interrupted run leaves the old list intact
+    // instead of a truncated file that the next Gvl::bundled() fails to parse.
+    $temporary = $target . '.' . getmypid() . '.tmp';
+    if (@file_put_contents($temporary, $formatted) !== strlen($formatted) || !@rename($temporary, $target)) {
+        @unlink($temporary);
         fwrite(STDERR, "Error: could not write to {$target}.\n");
 
         return 1;
