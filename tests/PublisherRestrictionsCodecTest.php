@@ -6,10 +6,12 @@ namespace Flenczewski\IabTcf\Tests;
 
 use Flenczewski\IabTcf\BitReader;
 use Flenczewski\IabTcf\BitWriter;
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 use Flenczewski\IabTcf\Exception\InvalidTcStringException;
 use Flenczewski\IabTcf\PublisherRestriction;
 use Flenczewski\IabTcf\PublisherRestrictionsCodec;
 use Flenczewski\IabTcf\RestrictionType;
+use Flenczewski\IabTcf\Spec;
 use PHPUnit\Framework\TestCase;
 
 final class PublisherRestrictionsCodecTest extends TestCase
@@ -82,5 +84,40 @@ final class PublisherRestrictionsCodecTest extends TestCase
             self::assertSame($expected->type, $decoded[$i]->type);
             self::assertSame($expected->vendorIds, $decoded[$i]->vendorIds);
         }
+    }
+
+    /**
+     * The decoder caps the vendor ids the whole section may expand to. The
+     * encoder used to skip that check, so it could emit a short, well-formed
+     * string that its own decoder then rejected.
+     */
+    public function testRefusesToEncodeMoreVendorIdsThanTheDecoderAccepts(): void
+    {
+        $half = intdiv(Spec::MAX_PUBLISHER_RESTRICTION_VENDOR_IDS, 2) + 1;
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('at most ' . Spec::MAX_PUBLISHER_RESTRICTION_VENDOR_IDS . ' vendor ids');
+
+        PublisherRestrictionsCodec::encode([
+            new PublisherRestriction(1, RestrictionType::NOT_ALLOWED, range(1, $half)),
+            new PublisherRestriction(2, RestrictionType::NOT_ALLOWED, range(1, $half)),
+        ]);
+    }
+
+    public function testASectionExactlyAtTheVendorIdBudgetRoundTrips(): void
+    {
+        $half = intdiv(Spec::MAX_PUBLISHER_RESTRICTION_VENDOR_IDS, 2);
+        $rest = Spec::MAX_PUBLISHER_RESTRICTION_VENDOR_IDS - $half;
+        $restrictions = [
+            new PublisherRestriction(1, RestrictionType::NOT_ALLOWED, range(1, $half)),
+            new PublisherRestriction(2, RestrictionType::NOT_ALLOWED, range(1, $rest)),
+        ];
+
+        $decoded = PublisherRestrictionsCodec::decode(
+            new BitReader(PublisherRestrictionsCodec::encode($restrictions))
+        );
+
+        self::assertCount($half, $decoded[0]->vendorIds);
+        self::assertCount($rest, $decoded[1]->vendorIds);
     }
 }
