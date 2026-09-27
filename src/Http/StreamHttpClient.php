@@ -10,9 +10,15 @@ use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 /**
  * Zero-dependency default client built on PHP's HTTP stream wrapper.
  *
- * Unlike a bare file_get_contents() call it bounds both each read and the
- * whole request in time, does not follow redirects, verifies TLS, checks the
+ * Unlike a bare file_get_contents() call it bounds each read and the body
+ * download in time, does not follow redirects, verifies TLS, checks the
  * response status and converts warnings into exceptions.
+ *
+ * The total deadline starts before connecting but is enforced only once the
+ * headers are in: PHP's HTTP wrapper connects and reads the headers inside
+ * fopen(), where just the per-read timeout applies. A server trickling its
+ * headers can therefore still hold the call open past $totalTimeoutSeconds;
+ * if that matters, use a PSR-18 client with a hard overall timeout.
  *
  * Any URL PHP's stream wrappers accept is fetched, `file://` included, and the
  * status check applies only to responses that carry HTTP headers. Never pass a
@@ -34,8 +40,9 @@ final class StreamHttpClient implements HttpClient
     /**
      * @param float $timeoutSeconds longest wait for any single read, including connecting
      * @param positive-int $maxResponseBytes
-     * @param float $totalTimeoutSeconds longest the whole request may take; without it a server trickling
-     *                                   bytes just inside $timeoutSeconds could hold the call open forever
+     * @param float $totalTimeoutSeconds longest the request may take once the headers are in (see the class
+     *                                   docblock); without it a server trickling body bytes just inside
+     *                                   $timeoutSeconds could hold the call open forever
      */
     public function __construct(
         private readonly float $timeoutSeconds = 10.0,
@@ -61,7 +68,9 @@ final class StreamHttpClient implements HttpClient
         $context = stream_context_create([
             'http' => [
                 'method' => 'GET',
-                // Connecting and reading the headers count against the total too.
+                // Applies per read while fopen() connects and reads the headers,
+                // which the deadline below cannot interrupt; capping it at the
+                // total at least keeps any single wait there within it.
                 'timeout' => min($this->timeoutSeconds, $this->totalTimeoutSeconds),
                 'follow_location' => 0,
                 'ignore_errors' => true,

@@ -78,8 +78,10 @@ rejected, and the GVL queries return fewer vendors by default — see
   reserved `UNDEFINED` restriction type, conflicting restrictions for one
   vendor and purpose, and Created after LastUpdated.
 - `Vendor::$deletedDate`, `Vendor::isDeletedAt()` and `Gvl::isDeleted()`.
-- `StreamHttpClient`'s `totalTimeoutSeconds` (default 60) bounds the whole
-  request; `timeoutSeconds` only ever bounded each read.
+- `StreamHttpClient`'s `totalTimeoutSeconds` (default 60) bounds the request
+  once its headers are in; `timeoutSeconds` only ever bounded each read.
+  Connecting and reading the headers happen inside `fopen()`, where only the
+  per-read timeout applies — see the README.
 - `Psr18HttpClient`'s `maxResponseBytes` (default 64 MB) — it used to buffer
   whatever the endpoint sent.
 

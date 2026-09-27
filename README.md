@@ -175,7 +175,7 @@ $gvl = (new GvlFetcher())->fetchVersion(138); // a specific archived version
 ```
 
 The default transport is `StreamHttpClient`: it bounds each read
-(`timeoutSeconds`, default 10) and the whole request (`totalTimeoutSeconds`,
+(`timeoutSeconds`, default 10) and the body download (`totalTimeoutSeconds`,
 default 60), verifies TLS, does not follow redirects, and checks the HTTP status
 rather than handing you a 404 page as if it were a vendor list. It fetches any
 URL PHP's stream wrappers accept, `file://` included, so never pass it a URL
@@ -188,8 +188,16 @@ use Flenczewski\IabTcf\Http\Psr18HttpClient;
 $fetcher = new GvlFetcher(new Psr18HttpClient($psr18Client, $psr17RequestFactory));
 ```
 
+`totalTimeoutSeconds` is enforced once the response headers have arrived:
+PHP's HTTP wrapper connects and reads them inside `fopen()`, where only the
+per-read timeout applies, so a server trickling its headers can outlast it.
+Where a hard overall limit matters, use a PSR-18 client configured with one.
+
 Both transports refuse a body larger than `maxResponseBytes` (64 MB by default).
-Timeouts of a PSR-18 client are that client's to configure.
+Timeouts of a PSR-18 client are that client's to configure, and so is the
+transfer: a client that buffers the whole response (Guzzle's default) has
+downloaded it before the cap is checked — have it stream the body
+(Guzzle: `'stream' => true`) for the cap to stop the download itself.
 
 ### Querying
 
