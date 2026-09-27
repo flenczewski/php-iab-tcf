@@ -30,7 +30,7 @@ final class PublisherRestrictionsCodec
         // must never produce a string it cannot read back.
         $totalIds = 0;
         foreach ($restrictions as $restriction) {
-            $totalIds += count(array_unique($restriction->vendorIds));
+            $totalIds += count($restriction->vendorIds);
         }
         if ($totalIds > Spec::MAX_PUBLISHER_RESTRICTION_VENDOR_IDS) {
             throw new InvalidArgumentException(sprintf(

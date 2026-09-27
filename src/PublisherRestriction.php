@@ -9,11 +9,14 @@ use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 /** A publisher's restriction of a Purpose to a specific legal basis for a set of vendors. */
 final class PublisherRestriction
 {
+    /** @var int[] sorted, de-duplicated — the only form the range encoding can carry */
+    public readonly array $vendorIds;
+
     /** @param int[] $vendorIds */
     public function __construct(
         public readonly int $purposeId,
         public readonly RestrictionType $type,
-        public readonly array $vendorIds,
+        array $vendorIds,
     ) {
         if ($purposeId < 1 || $purposeId > Spec::MAX_PURPOSE_ID) {
             throw new InvalidArgumentException(
@@ -21,6 +24,7 @@ final class PublisherRestriction
             );
         }
 
+        $set = [];
         foreach ($vendorIds as $vendorId) {
             // Checked here, as TcModel does for its own id lists: otherwise a
             // numeric string or float only fails at encode time, as a TypeError.
@@ -33,6 +37,11 @@ final class PublisherRestriction
                     . ", got {$vendorId}."
                 );
             }
+            $set[$vendorId] = true;
         }
+
+        $ids = array_keys($set);
+        sort($ids);
+        $this->vendorIds = $ids;
     }
 }

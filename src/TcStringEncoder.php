@@ -18,9 +18,14 @@ final class TcStringEncoder
     private const SEGMENT_TYPE_DISCLOSED_VENDORS = 1;
     private const SEGMENT_TYPE_ALLOWED_VENDORS = 2;
 
-    public static function encode(TcModel $model): string
+    /**
+     * @param \DateTimeImmutable|null $now stamped into Created/LastUpdated when the model leaves them null.
+     *                                    Defaults to the current time, which makes the output differ from one
+     *                                    call to the next; pass a fixed value for reproducible strings.
+     */
+    public static function encode(TcModel $model, ?\DateTimeImmutable $now = null): string
     {
-        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $now ??= new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $created = $model->created ?? $now;
         $lastUpdated = $model->lastUpdated ?? $now;
 
