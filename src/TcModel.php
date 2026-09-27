@@ -120,26 +120,26 @@ final class TcModel implements \JsonSerializable
         $this->consentLanguage = strtoupper($consentLanguage);
         $this->publisherCC = strtoupper($publisherCC);
 
-        $this->specialFeatureOptIns = self::idSet(
+        $this->specialFeatureOptIns = IdSet::normalize(
             'specialFeatureOptIns',
             $specialFeatureOptIns,
             1,
             Spec::MAX_SPECIAL_FEATURE_ID,
         );
-        $this->purposesConsent = self::idSet('purposesConsent', $purposesConsent, 1, Spec::MAX_PURPOSE_ID);
-        $this->purposesLITransparency = self::idSet(
+        $this->purposesConsent = IdSet::normalize('purposesConsent', $purposesConsent, 1, Spec::MAX_PURPOSE_ID);
+        $this->purposesLITransparency = IdSet::normalize(
             'purposesLITransparency',
             $purposesLITransparency,
             1,
             Spec::MAX_PURPOSE_ID,
         );
-        $this->vendorConsents = self::idSet(
+        $this->vendorConsents = IdSet::normalize(
             'vendorConsents',
             $vendorConsents,
             Spec::MIN_VENDOR_ID,
             Spec::MAX_VENDOR_ID,
         );
-        $this->vendorLegitimateInterests = self::idSet(
+        $this->vendorLegitimateInterests = IdSet::normalize(
             'vendorLegitimateInterests',
             $vendorLegitimateInterests,
             Spec::MIN_VENDOR_ID,
@@ -147,10 +147,10 @@ final class TcModel implements \JsonSerializable
         );
         $this->disclosedVendors = $disclosedVendors === null
             ? null
-            : self::idSet('disclosedVendors', $disclosedVendors, Spec::MIN_VENDOR_ID, Spec::MAX_VENDOR_ID);
+            : IdSet::normalize('disclosedVendors', $disclosedVendors, Spec::MIN_VENDOR_ID, Spec::MAX_VENDOR_ID);
         $this->allowedVendors = $allowedVendors === null
             ? null
-            : self::idSet('allowedVendors', $allowedVendors, Spec::MIN_VENDOR_ID, Spec::MAX_VENDOR_ID);
+            : IdSet::normalize('allowedVendors', $allowedVendors, Spec::MIN_VENDOR_ID, Spec::MAX_VENDOR_ID);
 
         foreach ($publisherRestrictions as $restriction) {
             if (!$restriction instanceof PublisherRestriction) {
@@ -166,33 +166,6 @@ final class TcModel implements \JsonSerializable
         if ($value < $min || $value > $max) {
             throw new InvalidArgumentException("{$field} must be between {$min} and {$max}, got {$value}.");
         }
-    }
-
-    /**
-     * Validates an id list and returns it sorted and de-duplicated.
-     *
-     * @param array<mixed> $ids
-     * @return int[]
-     */
-    private static function idSet(string $field, array $ids, int $min, int $max): array
-    {
-        $set = [];
-        foreach ($ids as $id) {
-            if (!is_int($id)) {
-                throw new InvalidArgumentException("{$field} must contain only integers.");
-            }
-            if ($id < $min || $id > $max) {
-                throw new InvalidArgumentException(
-                    "{$field} contains id {$id}, which is outside the valid range {$min}..{$max}."
-                );
-            }
-            $set[$id] = true;
-        }
-
-        $ids = array_keys($set);
-        sort($ids);
-
-        return $ids;
     }
 
     /**
