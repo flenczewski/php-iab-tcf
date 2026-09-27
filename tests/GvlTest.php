@@ -367,4 +367,21 @@ final class GvlTest extends TestCase
 
         Gvl::fromJson($json);
     }
+
+    /**
+     * Parsing the full list costs tens of milliseconds, mostly json_decode(),
+     * which a PHP-FPM worker pays on every request. The README recommends
+     * caching the parsed object instead, which only works if it survives
+     * serialize()/unserialize() intact.
+     */
+    public function testAParsedListSurvivesSerialisationForCaching(): void
+    {
+        $gvl = Gvl::fromJson(self::fixtureJson());
+
+        $restored = unserialize(serialize($gvl));
+
+        self::assertInstanceOf(Gvl::class, $restored);
+        self::assertEquals($gvl, $restored);
+        self::assertTrue($restored->isDeleted($restored->vendors[8]));
+    }
 }

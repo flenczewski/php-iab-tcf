@@ -29,10 +29,14 @@ final class Gvl
 
     /**
      * Parses the copy of the Global Vendor List bundled with this package
-     * (`resources/vendor-list.json`) — fast, deterministic, no network
-     * dependency at runtime. The bundle is refreshed periodically by CI (see
-     * README "Bundled GVL vs. live fetch"), so it may lag the live list by up
-     * to a week; use {@see GvlFetcher} instead if you need the freshest data.
+     * (`resources/vendor-list.json`) — deterministic, no network dependency at
+     * runtime. It is the list as of the release you installed: CI refreshes
+     * the file weekly, but a refresh only reaches you with the next release
+     * (see README "Bundled vs. live fetch"). Use {@see GvlFetcher} if you need
+     * the current list.
+     *
+     * The parsed result is cached for the rest of the process only; under
+     * PHP-FPM that means every request parses again. See README "Caching".
      */
     public static function bundled(): self
     {
