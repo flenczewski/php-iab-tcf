@@ -127,4 +127,48 @@ final class CliTest extends TestCase
         self::assertSame(27, $decoded['cmpId']);
         self::assertSame([2, 6, 8], $decoded['vendorConsents']);
     }
+
+    /**
+     * Installed as a dependency, the default target would sit inside vendor/
+     * — rewritten on the next composer install, and not what anyone running
+     * `vendor/bin/iab-tcf update-gvl` means to change. It must ask for a path.
+     */
+    public function testUpdateGvlRequiresAPathWhenInstalledAsADependency(): void
+    {
+        $project = sys_get_temp_dir() . '/iab-tcf-cli-' . bin2hex(random_bytes(4));
+        $package = $project . '/vendor/flenczewski/php-iab-tcf';
+        mkdir($package . '/bin', 0o777, true);
+        mkdir($package . '/resources');
+        copy(dirname(__DIR__) . '/bin/iab-tcf', $package . '/bin/iab-tcf');
+        file_put_contents(
+            $project . '/vendor/autoload.php',
+            '<?php return require ' . var_export(dirname(__DIR__) . '/vendor/autoload.php', true) . ';',
+        );
+
+        try {
+            $process = proc_open(
+                ['php', $package . '/bin/iab-tcf', 'update-gvl'],
+                [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+                $pipes,
+            );
+            self::assertIsResource($process);
+            stream_get_contents($pipes[1]);
+            $stderr = (string) stream_get_contents($pipes[2]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+
+            self::assertSame(1, proc_close($process));
+            self::assertStringContainsString('needs an output path', $stderr);
+            self::assertFileDoesNotExist($package . '/resources/vendor-list.json');
+        } finally {
+            unlink($package . '/bin/iab-tcf');
+            rmdir($package . '/bin');
+            rmdir($package . '/resources');
+            rmdir($package);
+            rmdir($project . '/vendor/flenczewski');
+            unlink($project . '/vendor/autoload.php');
+            rmdir($project . '/vendor');
+            rmdir($project);
+        }
+    }
 }

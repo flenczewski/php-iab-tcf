@@ -25,6 +25,22 @@ final class PublisherRestrictionsCodec
             ));
         }
 
+        // Mirror decode()'s shared budget. Without it this method could emit a
+        // short, well-formed section that decode() then rejects — the package
+        // must never produce a string it cannot read back.
+        $totalIds = 0;
+        foreach ($restrictions as $restriction) {
+            $totalIds += count($restriction->vendorIds);
+        }
+        if ($totalIds > Spec::MAX_PUBLISHER_RESTRICTION_VENDOR_IDS) {
+            throw new InvalidArgumentException(sprintf(
+                'Publisher restrictions name %d vendor ids in total; this package decodes at most %d vendor ids '
+                . 'across the whole section, so it refuses to encode more.',
+                $totalIds,
+                Spec::MAX_PUBLISHER_RESTRICTION_VENDOR_IDS,
+            ));
+        }
+
         $writer = new BitWriter();
         $writer->writeUint(count($restrictions), 12);
 

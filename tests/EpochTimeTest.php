@@ -120,4 +120,42 @@ final class EpochTimeTest extends TestCase
 
         self::assertLessThanOrEqual($dt, $restored);
     }
+
+    /**
+     * fromDeciseconds() multiplied first and checked nothing, so a value past
+     * PHP_INT_MAX / 100000 turned into a float and intdiv() then escaped as a
+     * raw TypeError, bypassing the package's own exception contract.
+     *
+     * @dataProvider decisecondsOutsideTheSafeRange
+     */
+    public function testFromDecisecondsRejectsValuesThatWouldOverflow(int $deciseconds): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('outside the range this converter can represent');
+
+        EpochTime::fromDeciseconds($deciseconds);
+    }
+
+    /** @return iterable<string,array{int}> */
+    public static function decisecondsOutsideTheSafeRange(): iterable
+    {
+        yield 'just above the safe range' => [intdiv(\PHP_INT_MAX, 100_000) + 1];
+        yield 'PHP_INT_MAX' => [\PHP_INT_MAX];
+        yield 'just below the safe range' => [-intdiv(\PHP_INT_MAX, 100_000) - 1];
+        yield 'PHP_INT_MIN' => [\PHP_INT_MIN];
+    }
+
+    public function testFromDecisecondsAcceptsTheEdgesOfTheSafeRange(): void
+    {
+        $max = intdiv(\PHP_INT_MAX, 100_000);
+
+        $latest = EpochTime::fromDeciseconds($max);
+        self::assertSame(intdiv($max, 10), $latest->getTimestamp());
+        self::assertSame(($max % 10) * 100_000, (int) $latest->format('u'));
+
+        // Floor division: -$max deciseconds sits 0.7 s before a whole second.
+        $earliest = EpochTime::fromDeciseconds(-$max);
+        self::assertSame(-intdiv($max, 10) - 1, $earliest->getTimestamp());
+        self::assertSame((10 - $max % 10) * 100_000, (int) $earliest->format('u'));
+    }
 }

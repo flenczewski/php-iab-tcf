@@ -49,6 +49,25 @@ $tcString = TcStringEncoder::encode($model);
 // "CPX...AA.IA..." — dot-separated, base64url-encoded segments
 ```
 
+A model without `created`/`lastUpdated` is stamped with the current time, so
+encoding it twice gives two different strings. Pass the time yourself when you
+need reproducible output:
+
+```php
+$tcString = TcStringEncoder::encode($model, new DateTimeImmutable('2026-01-01T00:00:00Z'));
+```
+
+The constructor enforces TCF *field bounds* only. Before encoding a model of
+your own, ask it what the TCF *policy* forbids but the wire format could still
+carry — legitimate interest for purpose 1 or 3–6 (only purpose 1 when
+`tcfPolicyVersion` predates TCF v2.2, i.e. is below 4), the reserved `UNDEFINED`
+restriction type, a vendor given two restriction types for one purpose,
+`created` after `lastUpdated`:
+
+```php
+$model->policyViolations(); // string[] — empty when there is nothing to report
+```
+
 ### Decode
 
 ```php
@@ -60,6 +79,15 @@ $model->cmpId;                // 300
 $model->purposesConsent;      // [1, 2, 3, 4]
 $model->vendorConsents;       // [1, 2, 3, 500]
 $model->publisherRestrictions; // PublisherRestriction[]
+```
+
+`decode()` refuses input longer than `Spec::MAX_TC_STRING_LENGTH` (256 KiB),
+which is above anything this package can encode. Real TC Strings are a few
+hundred bytes to a few kilobytes, so when the string comes from a cookie or a
+query parameter, pass a tighter limit:
+
+```php
+$model = TcStringDecoder::decode($_COOKIE['euconsent-v2'] ?? '', maxLength: 8192);
 ```
 
 ## TCF v2.3
@@ -100,7 +128,12 @@ of them. Concretely, a re-encoded string differs from its input when the input:
 | Pads the Core segment with more trailing bits than base64 alignment requires | Emits only the alignment padding |
 
 All five are lossless as far as the *decoded model* is concerned — the same
-`TcModel` comes back either way. **Do not** use a re-encoded string to test
+`TcModel` comes back either way.
+
+The model side does hold in general: `TcModel` stores id lists sorted and
+de-duplicated and the two-letter codes upper-cased — the only forms the wire
+format can carry — so a model's fields equal those of
+`TcStringDecoder::decode(TcStringEncoder::encode($model))`. **Do not** use a re-encoded string to test
 whether two cookies are equal, or as a cache key derived from a third-party
 string; compare the decoded `TcModel` fields instead.
 
@@ -116,10 +149,15 @@ Parse, query, and cross-check consents against the [Global Vendor List](https://
 | | `Gvl::bundled()` | `GvlFetcher::fetchLatest()` |
 |---|---|---|
 | Network required at runtime | No | Yes |
-| Speed | Instant | One HTTP request |
-| Freshness | Refreshed weekly by CI (see below) — may lag by up to ~7 days | Always current |
+| Cost | Parses a ~2 MB file once per process (see [Caching](#caching)) | One HTTP request, plus the same parse |
+| Freshness | As of the release you installed (see below) | Always current |
 
-Use `Gvl::bundled()` for most cases. Reach for `GvlFetcher` only if you specifically need the freshest possible list and can tolerate a network dependency at runtime (or want a specific archived version).
+The bundled file is refreshed weekly on this repository's `main` branch, but
+Composer installs tagged releases — so what you get is the list as it stood
+when your installed version was released, which can be weeks or months old.
+Use `Gvl::bundled()` when that is acceptable. Reach for `GvlFetcher` if you
+need the current list and can tolerate a network dependency (or want a specific
+archived version).
 
 ```php
 use Flenczewski\IabTcf\Gvl\Gvl;
@@ -136,16 +174,30 @@ $gvl = (new GvlFetcher())->fetchLatest();
 $gvl = (new GvlFetcher())->fetchVersion(138); // a specific archived version
 ```
 
-The default transport is `StreamHttpClient`: it sets a timeout, verifies TLS,
-does not follow redirects, and checks the HTTP status rather than handing you a
-404 page as if it were a vendor list. If your project already has a PSR-18
-client, pass it in instead — `psr/http-client` is *suggested*, never required:
+The default transport is `StreamHttpClient`: it bounds each read
+(`timeoutSeconds`, default 10) and the body download (`totalTimeoutSeconds`,
+default 60), verifies TLS, does not follow redirects, and checks the HTTP status
+rather than handing you a 404 page as if it were a vendor list. It fetches any
+URL PHP's stream wrappers accept, `file://` included, so never pass it a URL
+taken from untrusted input. If your project already has a PSR-18 client, pass
+it in instead — `psr/http-client` is *suggested*, never required:
 
 ```php
 use Flenczewski\IabTcf\Http\Psr18HttpClient;
 
 $fetcher = new GvlFetcher(new Psr18HttpClient($psr18Client, $psr17RequestFactory));
 ```
+
+`totalTimeoutSeconds` is enforced once the response headers have arrived:
+PHP's HTTP wrapper connects and reads them inside `fopen()`, where only the
+per-read timeout applies, so a server trickling its headers can outlast it.
+Where a hard overall limit matters, use a PSR-18 client configured with one.
+
+Both transports refuse a body larger than `maxResponseBytes` (64 MB by default).
+Timeouts of a PSR-18 client are that client's to configure, and so is the
+transfer: a client that buffers the whole response (Guzzle's default) has
+downloaded it before the cap is checked — have it stream the body
+(Guzzle: `'stream' => true`) for the cap to stop the download itself.
 
 ### Querying
 
@@ -163,6 +215,18 @@ $gvl->getVendorsWithSpecialPurpose(1);   // Vendor[]
 $narrowed = $gvl->narrowVendorsTo([1, 2, 755]); // new Gvl containing only these vendor ids
 ```
 
+The list keeps an entry for every vendor that was ever registered; a deleted
+vendor carries a `deletedDate` so that older TC Strings naming it still
+resolve. `$gvl->vendors` holds them all, but the `getVendorsWith*()` queries
+leave out vendors deleted as of the list's `lastUpdated` — pass
+`includeDeleted: true` to get them back:
+
+```php
+$gvl->vendors[8]->deletedDate;            // ?DateTimeImmutable
+$gvl->isDeleted($gvl->vendors[8]);         // bool, judged as of $gvl->lastUpdated
+$gvl->getVendorsWithConsentPurpose(1, includeDeleted: true);
+```
+
 ### Cross-checking a TcModel
 
 ```php
@@ -170,11 +234,24 @@ $problems = $gvl->validateConsents($model);
 // e.g. ["Vendor 65535 has consent in the TcModel but does not exist in this GVL."]
 ```
 
-This is a lightweight sanity check (unknown vendor ids, vendors with consent/LI but no matching declared purpose in the GVL) — not a formal, exhaustive TCF validator.
+This is a lightweight sanity check (unknown or deleted vendor ids, vendors with consent/LI but no matching declared purpose in the GVL) — not a formal, exhaustive TCF validator.
+
+### Caching
+
+Parsing the full list takes tens of milliseconds, most of it `json_decode()`.
+`Gvl::bundled()` remembers the result for the rest of the process, which under
+PHP-FPM means once per request. A parsed `Gvl` survives `serialize()`, so cache
+it where your workers share memory, keyed by the package version (or by
+`vendorListVersion` for a fetched list):
+
+```php
+$key = 'iab-tcf-gvl-' . \Composer\InstalledVersions::getVersion('flenczewski/php-iab-tcf');
+$gvl = apcu_entry($key, static fn () => Gvl::bundled()); // or any PSR-16 cache
+```
 
 ### Keeping the bundled GVL fresh
 
-`resources/vendor-list.json` is the full, real Global Vendor List, refreshed automatically once a week by [`.github/workflows/update-gvl.yml`](.github/workflows/update-gvl.yml), which runs `composer update-gvl` (== `bin/iab-tcf update-gvl`) and commits the result if it changed. You can run the same refresh yourself:
+`resources/vendor-list.json` is the full, real Global Vendor List, refreshed automatically once a week on `main` by [`.github/workflows/update-gvl.yml`](.github/workflows/update-gvl.yml), which runs `composer update-gvl` (== `bin/iab-tcf update-gvl`), runs the test suite, and commits the result if it changed. The refresh reaches Composer users with the next tagged release. In a checkout of this package you can run the same refresh yourself:
 
 ```bash
 composer update-gvl
@@ -190,9 +267,14 @@ php bin/iab-tcf decode "CPX...AA.IA..."
 Prints the decoded model as pretty-printed JSON to stdout; exits non-zero with a message on stderr for a missing/invalid argument. When this package is installed as a dependency, the command is available at `vendor/bin/iab-tcf` (Composer does not link a package's own `bin` entry into `vendor/bin` for its own repo, so inside this repo's checkout, invoke it as `php bin/iab-tcf` instead).
 
 ```bash
-php bin/iab-tcf update-gvl [path]   # fetch the latest GVL and write it to `path` (default: resources/vendor-list.json)
+php bin/iab-tcf update-gvl [path]   # fetch the latest GVL and write it to `path`
 php bin/iab-tcf --help              # usage, printed to stdout, exit 0
 ```
+
+`update-gvl` replaces the file atomically. The path defaults to
+`resources/vendor-list.json` only in a checkout of this package; installed as a
+dependency (`vendor/bin/iab-tcf`), it is required, because the default would
+point inside `vendor/`.
 
 ## Error handling
 
@@ -203,7 +285,7 @@ them. Concrete classes still extend their closest SPL ancestor, so existing
 
 | Exception | Thrown when |
 |---|---|
-| `InvalidTcStringException` | A TC String cannot be decoded — **the only type `TcStringDecoder::decode()` throws** |
+| `InvalidTcStringException` | A TC String cannot be decoded — **the only type `TcStringDecoder::decode()` throws for any input string** (a `maxLength` below 1 is a programming error and throws `InvalidArgumentException`) |
 | `InvalidArgumentException` | A value handed to the encoder or a model is outside its TCF field bounds |
 | `OutOfRangeException` | A read ran past the end of a bit buffer |
 | `GvlException` | The Global Vendor List could not be fetched or parsed |
@@ -225,14 +307,17 @@ try {
 
 TC Strings normally arrive from cookies and query parameters, so **treat them as
 untrusted input**. `TcStringDecoder::decode()` validates structure and bounds
-what it will allocate: a range list is checked against the 16-bit vendor id
+what it will allocate: the input length is capped before anything is decoded
+(256 KiB by default — pass a tighter `maxLength` for cookie input, see
+[Decode](#decode)), and a range list is checked against the 16-bit vendor id
 space *before* it is expanded, so a small hostile string cannot inflate into a
 huge array.
 
 A vendor section's declared `MaxVendorId` is enforced against its range
-entries, so a section cannot name ids outside the space it claims. `GvlFetcher`
-bounds the response body it will buffer (`StreamHttpClient`, 64 MB by default,
-configurable via `maxResponseBytes`).
+entries, so a section cannot name ids outside the space it claims. Both HTTP
+transports bound the response body they will buffer (64 MB by default,
+configurable via `maxResponseBytes`), and `StreamHttpClient` bounds the whole
+request in time.
 
 Version 1.x did not bound range expansion at all and is vulnerable to memory
 exhaustion. See [SECURITY.md](SECURITY.md) for the supported versions and how

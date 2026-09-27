@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Flenczewski\IabTcf\Tests;
 
+use Flenczewski\IabTcf\Exception\GvlException;
 use Flenczewski\IabTcf\Gvl\Gvl;
+use Flenczewski\IabTcf\Gvl\Vendor;
 use Flenczewski\IabTcf\TcModel;
 use PHPUnit\Framework\TestCase;
 
@@ -30,59 +32,167 @@ final class GvlTest extends TestCase
         self::assertSame('Exponential Interactive, Inc d/b/a VDX.tv', $gvl->vendors[1]->name);
     }
 
-    public function testGetVendorsWithConsentPurpose(): void
-    {
+    /**
+     * Vendors 8 and 9 in the fixture carry a deletedDate before the list's
+     * lastUpdated, so the queries leave them out unless asked not to.
+     *
+     * @param \Closure(Gvl, bool): Vendor[] $query
+     * @param list<int> $expected
+     * @param list<int> $expectedWithDeleted
+     *
+     * @dataProvider vendorQueries
+     */
+    public function testVendorQueriesSkipDeletedVendorsUnlessAskedTo(
+        \Closure $query,
+        array $expected,
+        array $expectedWithDeleted,
+    ): void {
         $gvl = Gvl::fromJson(self::fixtureJson());
 
-        // Purpose 5 ("Personalised advertising profile") is only declared by vendor 9 in the fixture.
-        $vendors = $gvl->getVendorsWithConsentPurpose(5);
-
-        self::assertCount(1, $vendors);
-        self::assertSame(9, $vendors[0]->id);
+        self::assertSame($expected, self::sortedIds($query($gvl, false)));
+        self::assertSame($expectedWithDeleted, self::sortedIds($query($gvl, true)));
     }
 
-    public function testGetVendorsWithLegIntPurpose(): void
+    /**
+     * @param Vendor[] $vendors
+     * @return list<int>
+     */
+    private static function sortedIds(array $vendors): array
     {
-        $gvl = Gvl::fromJson(self::fixtureJson());
-
-        // Only vendor 8 declares legIntPurposes in the fixture.
-        $vendors = $gvl->getVendorsWithLegIntPurpose(2);
-
-        self::assertCount(1, $vendors);
-        self::assertSame(8, $vendors[0]->id);
-    }
-
-    public function testGetVendorsWithFeature(): void
-    {
-        $gvl = Gvl::fromJson(self::fixtureJson());
-
-        $vendors = $gvl->getVendorsWithFeature(3);
-        $ids = array_map(static fn ($v) => $v->id, $vendors);
+        $ids = [];
+        foreach ($vendors as $vendor) {
+            $ids[] = $vendor->id;
+        }
         sort($ids);
 
-        self::assertSame([1, 4, 6, 9], $ids);
+        return $ids;
     }
 
-    public function testGetVendorsWithSpecialFeature(): void
+    /** @return iterable<string,array{\Closure(Gvl, bool): Vendor[],list<int>,list<int>}> */
+    public static function vendorQueries(): iterable
+    {
+        // Purpose 5 ("Personalised advertising profile") is only declared by deleted vendor 9.
+        yield 'consent purpose' => [
+            static fn (Gvl $gvl, bool $deleted): array => $gvl->getVendorsWithConsentPurpose(5, $deleted),
+            [],
+            [9],
+        ];
+        yield 'consent purpose shared with live vendors' => [
+            static fn (Gvl $gvl, bool $deleted): array => $gvl->getVendorsWithConsentPurpose(1, $deleted),
+            [1, 2, 4, 6],
+            [1, 2, 4, 6, 8, 9],
+        ];
+        // Only deleted vendor 8 declares legIntPurposes in the fixture.
+        yield 'legitimate interest purpose' => [
+            static fn (Gvl $gvl, bool $deleted): array => $gvl->getVendorsWithLegIntPurpose(2, $deleted),
+            [],
+            [8],
+        ];
+        yield 'feature' => [
+            static fn (Gvl $gvl, bool $deleted): array => $gvl->getVendorsWithFeature(3, $deleted),
+            [1, 4, 6],
+            [1, 4, 6, 9],
+        ];
+        yield 'special feature' => [
+            static fn (Gvl $gvl, bool $deleted): array => $gvl->getVendorsWithSpecialFeature(2, $deleted),
+            [2],
+            [2, 9],
+        ];
+        yield 'special purpose' => [
+            static fn (Gvl $gvl, bool $deleted): array => $gvl->getVendorsWithSpecialPurpose(3, $deleted),
+            [2, 4],
+            [2, 4, 8],
+        ];
+    }
+
+    public function testVendorDeletedDateIsParsed(): void
     {
         $gvl = Gvl::fromJson(self::fixtureJson());
 
-        $vendors = $gvl->getVendorsWithSpecialFeature(2);
-        $ids = array_map(static fn ($v) => $v->id, $vendors);
-        sort($ids);
-
-        self::assertSame([2, 9], $ids);
+        self::assertNull($gvl->vendors[1]->deletedDate);
+        self::assertFalse($gvl->isDeleted($gvl->vendors[1]));
+        self::assertSame('2025-05-13', $gvl->vendors[8]->deletedDate?->format('Y-m-d'));
+        self::assertTrue($gvl->isDeleted($gvl->vendors[8]));
     }
 
-    public function testGetVendorsWithSpecialPurpose(): void
+    /** A deletion scheduled after the list's own lastUpdated has not happened yet as far as this list knows. */
+    public function testAVendorDeletedAfterTheListWasPublishedIsStillLive(): void
+    {
+        $gvl = Gvl::fromJson('{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":5,'
+            . '"lastUpdated":"2026-01-01T00:00:00Z","vendors":{"1":{"id":1,"name":"A","purposes":[1],'
+            . '"deletedDate":"2026-06-01T00:00:00Z"}}}');
+
+        self::assertFalse($gvl->isDeleted($gvl->vendors[1]));
+        self::assertCount(1, $gvl->getVendorsWithConsentPurpose(1));
+    }
+
+    public function testValidateConsentsFlagsDeletedVendors(): void
     {
         $gvl = Gvl::fromJson(self::fixtureJson());
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, vendorConsents: [9], vendorLegitimateInterests: [8]);
 
-        $vendors = $gvl->getVendorsWithSpecialPurpose(3);
-        $ids = array_map(static fn ($v) => $v->id, $vendors);
-        sort($ids);
+        $problems = $gvl->validateConsents($model);
 
-        self::assertSame([2, 4, 8], $ids);
+        self::assertCount(2, $problems);
+        self::assertStringContainsString('Vendor 9 has consent', $problems[0]);
+        self::assertStringContainsString('deleted', $problems[0]);
+        self::assertStringContainsString('Vendor 8 has legitimate interest', $problems[1]);
+        self::assertStringContainsString('deleted', $problems[1]);
+    }
+
+    /** @dataProvider invalidDates */
+    public function testRejectsADeletedDateThatIsNotAnAbsoluteDate(string $date): void
+    {
+        $this->expectException(GvlException::class);
+        $this->expectExceptionMessage('"deletedDate" is not a valid date');
+
+        Vendor::fromArray(['id' => 1, 'name' => 'A', 'deletedDate' => $date]);
+    }
+
+    /**
+     * DateTimeImmutable accepts relative formats, so "tomorrow" used to make a
+     * corrupt list look current — the very thing the empty-string check guards.
+     *
+     * @dataProvider invalidDates
+     */
+    public function testRejectsALastUpdatedThatIsNotAnAbsoluteDate(string $date): void
+    {
+        $this->expectException(GvlException::class);
+        $this->expectExceptionMessage('"lastUpdated" is not a valid date');
+
+        Gvl::fromJson('{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":5,'
+            . '"lastUpdated":' . json_encode($date) . ',"vendors":{}}');
+    }
+
+    /** @return iterable<string,array{string}> */
+    public static function invalidDates(): iterable
+    {
+        yield 'relative: now' => ['now'];
+        yield 'relative: tomorrow' => ['tomorrow'];
+        yield 'relative with a date prefix' => ['2026-01-01 +1 week'];
+        yield 'day that rolls over into the next month' => ['2026-02-31T00:00:00Z'];
+        yield 'trailing newline' => ["2026-01-01T00:00:00Z\n"];
+    }
+
+    /** @dataProvider validDates */
+    public function testAcceptsTheIso8601SpellingsTheGvlUses(string $date, string $expectedUtc): void
+    {
+        $gvl = Gvl::fromJson('{"gvlSpecificationVersion":3,"vendorListVersion":1,"tcfPolicyVersion":5,'
+            . '"lastUpdated":' . json_encode($date) . ',"vendors":{}}');
+
+        self::assertSame(
+            $expectedUtc,
+            $gvl->lastUpdated->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d\\TH:i:s.v'),
+        );
+    }
+
+    /** @return iterable<string,array{string,string}> */
+    public static function validDates(): iterable
+    {
+        yield 'Zulu' => ['2026-09-10T16:00:18Z', '2026-09-10T16:00:18.000'];
+        yield 'fractional seconds' => ['2025-05-13T15:30:44.66Z', '2025-05-13T15:30:44.660'];
+        yield 'offset' => ['2026-09-10T18:00:18+02:00', '2026-09-10T16:00:18.000'];
+        yield 'date only' => ['2026-09-10', '2026-09-10T00:00:00.000'];
     }
 
     public function testNarrowVendorsTo(): void
@@ -114,8 +224,8 @@ final class GvlTest extends TestCase
     public function testValidateConsentsFlagsVendorWithNoDeclaredConsentPurposes(): void
     {
         $gvl = Gvl::fromJson(self::fixtureJson());
-        // Vendor 8 has purposes=[1,3,4] (non-empty) so it should NOT be flagged for consent.
-        $model = new TcModel(cmpId: 1, cmpVersion: 1, vendorConsents: [8]);
+        // Vendor 2 has purposes=[1,2,3,4,7,9,10] (non-empty) so it should NOT be flagged for consent.
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, vendorConsents: [2]);
 
         self::assertSame([], $gvl->validateConsents($model));
     }
@@ -256,5 +366,22 @@ final class GvlTest extends TestCase
         self::assertIsString($json);
 
         Gvl::fromJson($json);
+    }
+
+    /**
+     * Parsing the full list costs tens of milliseconds, mostly json_decode(),
+     * which a PHP-FPM worker pays on every request. The README recommends
+     * caching the parsed object instead, which only works if it survives
+     * serialize()/unserialize() intact.
+     */
+    public function testAParsedListSurvivesSerialisationForCaching(): void
+    {
+        $gvl = Gvl::fromJson(self::fixtureJson());
+
+        $restored = unserialize(serialize($gvl));
+
+        self::assertInstanceOf(Gvl::class, $restored);
+        self::assertEquals($gvl, $restored);
+        self::assertTrue($restored->isDeleted($restored->vendors[8]));
     }
 }

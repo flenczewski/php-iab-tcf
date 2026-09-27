@@ -49,6 +49,18 @@ final class EpochTime
 
     public static function fromDeciseconds(int $deciseconds): \DateTimeImmutable
     {
+        // Mirror toDeciseconds(): past this bound the multiplication below
+        // becomes a float and intdiv() dies with a TypeError under strict_types.
+        $maxSafeDeciseconds = intdiv(\PHP_INT_MAX, 100_000);
+        if ($deciseconds > $maxSafeDeciseconds || $deciseconds < -$maxSafeDeciseconds) {
+            throw new InvalidArgumentException(sprintf(
+                '%d deciseconds is outside the range this converter can represent; it must be between %d and %d.',
+                $deciseconds,
+                -$maxSafeDeciseconds,
+                $maxSafeDeciseconds,
+            ));
+        }
+
         $totalMicroseconds = $deciseconds * 100_000;
 
         // Floor division (not intdiv's truncate-toward-zero) so $microseconds

@@ -10,9 +10,19 @@ use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 /**
  * Zero-dependency default client built on PHP's HTTP stream wrapper.
  *
- * Unlike a bare file_get_contents() call it sets a timeout, does not follow
- * redirects, verifies TLS, checks the response status and converts warnings
- * into exceptions.
+ * Unlike a bare file_get_contents() call it bounds each read and the body
+ * download in time, does not follow redirects, verifies TLS, checks the
+ * response status and converts warnings into exceptions.
+ *
+ * The total deadline starts before connecting but is enforced only once the
+ * headers are in: PHP's HTTP wrapper connects and reads the headers inside
+ * fopen(), where just the per-read timeout applies. A server trickling its
+ * headers can therefore still hold the call open past $totalTimeoutSeconds;
+ * if that matters, use a PSR-18 client with a hard overall timeout.
+ *
+ * Any URL PHP's stream wrappers accept is fetched, `file://` included, and the
+ * status check applies only to responses that carry HTTP headers. Never pass a
+ * URL taken from untrusted input.
  */
 final class StreamHttpClient implements HttpClient
 {
@@ -27,12 +37,25 @@ final class StreamHttpClient implements HttpClient
     /** How much of the body to pull per read; large enough that a multi-megabyte list is not read byte-wise. */
     private const READ_CHUNK_BYTES = 65536;
 
-    /** @param positive-int $maxResponseBytes */
+    /**
+     * @param float $timeoutSeconds longest wait for any single read, including connecting
+     * @param positive-int $maxResponseBytes
+     * @param float $totalTimeoutSeconds longest the request may take once the headers are in (see the class
+     *                                   docblock); without it a server trickling body bytes just inside
+     *                                   $timeoutSeconds could hold the call open forever
+     */
     public function __construct(
         private readonly float $timeoutSeconds = 10.0,
         private readonly string $userAgent = 'php-iab-tcf (+https://github.com/flenczewski/php-iab-tcf)',
         private readonly int $maxResponseBytes = self::DEFAULT_MAX_RESPONSE_BYTES,
+        private readonly float $totalTimeoutSeconds = 60.0,
     ) {
+        $timeouts = ['timeoutSeconds' => $timeoutSeconds, 'totalTimeoutSeconds' => $totalTimeoutSeconds];
+        foreach ($timeouts as $name => $value) {
+            if (!($value > 0)) {
+                throw new InvalidArgumentException("{$name} must be greater than 0, got {$value}.");
+            }
+        }
         if ($maxResponseBytes < 1) {
             throw new InvalidArgumentException(
                 "maxResponseBytes must be at least 1, got {$maxResponseBytes}."
@@ -45,7 +68,10 @@ final class StreamHttpClient implements HttpClient
         $context = stream_context_create([
             'http' => [
                 'method' => 'GET',
-                'timeout' => $this->timeoutSeconds,
+                // Applies per read while fopen() connects and reads the headers,
+                // which the deadline below cannot interrupt; capping it at the
+                // total at least keeps any single wait there within it.
+                'timeout' => min($this->timeoutSeconds, $this->totalTimeoutSeconds),
                 'follow_location' => 0,
                 'ignore_errors' => true,
                 'header' => "Accept: application/json\r\nUser-Agent: {$this->userAgent}\r\n",
@@ -62,12 +88,15 @@ final class StreamHttpClient implements HttpClient
         // a PHP_INT_MAX limit died outright with "Out of memory". Streaming
         // keeps the footprint proportional to what the endpoint actually sent
         // while still refusing to buffer more than the limit.
+        $deadline = microtime(true) + $this->totalTimeoutSeconds;
+        error_clear_last();
         $handle = @fopen($url, 'r', false, $context);
         if ($handle === false) {
-            throw new GvlException(
-                "HTTP request to {$url} failed: the host is unreachable, the request timed out, "
-                . 'or allow_url_fopen is disabled.'
-            );
+            // The warning is suppressed so it cannot leak past the exception,
+            // but its text is the only record of *why* the open failed.
+            $reason = error_get_last()['message'] ?? 'the host is unreachable, the request timed out, '
+                . 'or allow_url_fopen is disabled';
+            throw new GvlException("HTTP request to {$url} failed: {$reason}");
         }
 
         try {
@@ -84,7 +113,25 @@ final class StreamHttpClient implements HttpClient
 
             $body = '';
             while (!feof($handle)) {
+                $remaining = $deadline - microtime(true);
+                if ($remaining <= 0) {
+                    throw self::deadlineExceeded($url, $this->totalTimeoutSeconds);
+                }
+                // Shrink the per-read timeout to what is left of the deadline,
+                // so a single blocked read cannot overrun it.
+                $wait = min($this->timeoutSeconds, $remaining);
+                stream_set_timeout($handle, (int) $wait, (int) (($wait - (int) $wait) * 1_000_000));
+
                 $chunk = fread($handle, self::READ_CHUNK_BYTES);
+                // A read that times out returns false or '' depending on the
+                // wrapper, so ask the stream why before reporting a failure.
+                if (($chunk === false || $chunk === '') && stream_get_meta_data($handle)['timed_out']) {
+                    // Judged by which limit this read was given, not by the
+                    // clock: select() may wake a hair before the deadline.
+                    throw $wait < $this->timeoutSeconds
+                        ? self::deadlineExceeded($url, $this->totalTimeoutSeconds)
+                        : new GvlException("HTTP response from {$url} stalled for {$this->timeoutSeconds} seconds.");
+                }
                 if ($chunk === false) {
                     throw new GvlException("HTTP response from {$url} could not be read to completion.");
                 }
@@ -116,6 +163,11 @@ final class StreamHttpClient implements HttpClient
         }
 
         return $body;
+    }
+
+    private static function deadlineExceeded(string $url, float $seconds): GvlException
+    {
+        return new GvlException("HTTP request to {$url} did not complete within {$seconds} seconds.");
     }
 
     /** @param list<string> $headers */

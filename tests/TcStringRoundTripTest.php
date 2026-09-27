@@ -350,4 +350,75 @@ final class TcStringRoundTripTest extends TestCase
             'The canonical form must be the smaller of the two encodings.',
         );
     }
+
+    /**
+     * The model used to keep ids and codes exactly as given, while the wire
+     * format can only carry a sorted, de-duplicated set and upper-case
+     * letters — so a model never equalled its own decode/encode cycle.
+     */
+    public function testTheModelIsNormalisedSoItEqualsItsOwnRoundTrip(): void
+    {
+        $model = new TcModel(
+            cmpId: 1,
+            cmpVersion: 1,
+            consentLanguage: 'pl',
+            publisherCC: 'de',
+            specialFeatureOptIns: [2, 1, 2],
+            purposesConsent: [4, 1, 3, 1],
+            purposesLITransparency: [7, 2],
+            vendorConsents: [500, 3, 3, 1],
+            vendorLegitimateInterests: [9, 4],
+            publisherRestrictions: [new PublisherRestriction(2, RestrictionType::REQUIRE_CONSENT, [9, 1, 9])],
+            disclosedVendors: [500, 1, 500],
+            allowedVendors: [8, 2],
+            created: new \DateTimeImmutable('2026-01-01T00:00:00Z'),
+            lastUpdated: new \DateTimeImmutable('2026-01-01T00:00:00Z'),
+        );
+
+        self::assertSame('PL', $model->consentLanguage);
+        self::assertSame('DE', $model->publisherCC);
+        self::assertSame([1, 2], $model->specialFeatureOptIns);
+        self::assertSame([1, 3, 4], $model->purposesConsent);
+        self::assertSame([1, 3, 500], $model->vendorConsents);
+        self::assertSame([1, 9], $model->publisherRestrictions[0]->vendorIds);
+        self::assertSame([1, 500], $model->disclosedVendors);
+        self::assertSame([2, 8], $model->allowedVendors);
+
+        $decoded = TcStringDecoder::decode(TcStringEncoder::encode($model));
+
+        self::assertEquals($model->jsonSerialize(), $decoded->jsonSerialize());
+    }
+
+    /**
+     * Without timestamps on the model the encoder stamped the current time,
+     * so the same model encoded twice gave two different strings, with no way
+     * for a caller to pin the clock.
+     */
+    public function testEncodingIsDeterministicWhenTheCallerSuppliesTheTime(): void
+    {
+        $model = new TcModel(cmpId: 1, cmpVersion: 1);
+        $now = new \DateTimeImmutable('2026-03-04T05:06:07.8Z');
+
+        $first = TcStringEncoder::encode($model, $now);
+        usleep(200_000);
+
+        self::assertSame($first, TcStringEncoder::encode($model, $now));
+
+        $decoded = TcStringDecoder::decode($first);
+        self::assertSame('2026-03-04T05:06:07.800', $decoded->created?->format('Y-m-d\\TH:i:s.v'));
+        self::assertSame('2026-03-04T05:06:07.800', $decoded->lastUpdated?->format('Y-m-d\\TH:i:s.v'));
+    }
+
+    public function testTimestampsOnTheModelTakePrecedenceOverTheSuppliedTime(): void
+    {
+        $created = new \DateTimeImmutable('2025-01-01T00:00:00Z');
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, created: $created);
+
+        $decoded = TcStringDecoder::decode(
+            TcStringEncoder::encode($model, new \DateTimeImmutable('2026-01-01T00:00:00Z'))
+        );
+
+        self::assertSame('2025-01-01', $decoded->created?->format('Y-m-d'));
+        self::assertSame('2026-01-01', $decoded->lastUpdated?->format('Y-m-d'));
+    }
 }

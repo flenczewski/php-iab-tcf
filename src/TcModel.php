@@ -22,11 +22,55 @@ use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 final class TcModel implements \JsonSerializable
 {
     /**
+     * Purposes a vendor may not process under legitimate interest as of TCF
+     * v2.2 (policy version 4): purpose 1 never allowed it, and v2.2 withdrew
+     * it for purposes 3 to 6. Under earlier policy versions only purpose 1 is
+     * off limits; see {@see self::policyViolations()}.
+     */
+    public const PURPOSES_WITHOUT_LEGITIMATE_INTEREST = [1, 3, 4, 5, 6];
+
+    /** The TCF v2.2 policy version, the first to withdraw legitimate interest for purposes 3 to 6. */
+    private const TCF_V2_2_POLICY_VERSION = 4;
+
+    /** Upper-case, as the wire format stores it. */
+    public readonly string $consentLanguage;
+
+    /** Upper-case, as the wire format stores it. */
+    public readonly string $publisherCC;
+
+    /** @var int[] sorted, de-duplicated */
+    public readonly array $specialFeatureOptIns;
+
+    /** @var int[] sorted, de-duplicated */
+    public readonly array $purposesConsent;
+
+    /** @var int[] sorted, de-duplicated */
+    public readonly array $purposesLITransparency;
+
+    /** @var int[] sorted, de-duplicated */
+    public readonly array $vendorConsents;
+
+    /** @var int[] sorted, de-duplicated */
+    public readonly array $vendorLegitimateInterests;
+
+    /** @var int[]|null sorted, de-duplicated; see the constructor for what null means */
+    public readonly ?array $disclosedVendors;
+
+    /** @var int[]|null sorted, de-duplicated; null omits the segment */
+    public readonly ?array $allowedVendors;
+
+    /**
+     * Id lists are stored sorted and de-duplicated, and the two-letter codes
+     * upper-cased — the only forms the wire format can carry — so a model
+     * equals its own decode/encode cycle.
+     *
      * @param int[] $specialFeatureOptIns 1-based Special Feature ids opted into
      * @param int[] $purposesConsent 1-based Purpose ids with consent
      * @param int[] $purposesLITransparency 1-based Purpose ids with legitimate interest established
      * @param int[] $vendorConsents vendor ids with consent
      * @param int[] $vendorLegitimateInterests vendor ids with legitimate interest
+     * @param bool $useNonStandardStacks the Core String's UseNonStandardTexts bit (named UseNonStandardStacks
+     *                                   before TCF v2.2)
      * @param PublisherRestriction[] $publisherRestrictions
      * @param int[]|null $disclosedVendors vendor ids disclosed to the user (segment type 1). Defaults to `[]`
      *                                     for newly constructed models (segment emitted, v2.3-compliant); pass
@@ -42,21 +86,21 @@ final class TcModel implements \JsonSerializable
         public readonly int $cmpId,
         public readonly int $cmpVersion,
         public readonly int $consentScreen = 0,
-        public readonly string $consentLanguage = 'EN',
+        string $consentLanguage = 'EN',
         public readonly int $vendorListVersion = 0,
         public readonly int $tcfPolicyVersion = 5,
         public readonly bool $isServiceSpecific = false,
         public readonly bool $useNonStandardStacks = false,
         public readonly bool $purposeOneTreatment = false,
-        public readonly string $publisherCC = 'AA',
-        public readonly array $specialFeatureOptIns = [],
-        public readonly array $purposesConsent = [],
-        public readonly array $purposesLITransparency = [],
-        public readonly array $vendorConsents = [],
-        public readonly array $vendorLegitimateInterests = [],
+        string $publisherCC = 'AA',
+        array $specialFeatureOptIns = [],
+        array $purposesConsent = [],
+        array $purposesLITransparency = [],
+        array $vendorConsents = [],
+        array $vendorLegitimateInterests = [],
         public readonly array $publisherRestrictions = [],
-        public readonly ?array $disclosedVendors = [],
-        public readonly ?array $allowedVendors = null,
+        ?array $disclosedVendors = [],
+        ?array $allowedVendors = null,
         public readonly ?\DateTimeImmutable $created = null,
         public readonly ?\DateTimeImmutable $lastUpdated = null,
     ) {
@@ -73,24 +117,40 @@ final class TcModel implements \JsonSerializable
                 );
             }
         }
+        $this->consentLanguage = strtoupper($consentLanguage);
+        $this->publisherCC = strtoupper($publisherCC);
 
-        self::assertIdSet('specialFeatureOptIns', $specialFeatureOptIns, 1, Spec::MAX_SPECIAL_FEATURE_ID);
-        self::assertIdSet('purposesConsent', $purposesConsent, 1, Spec::MAX_PURPOSE_ID);
-        self::assertIdSet('purposesLITransparency', $purposesLITransparency, 1, Spec::MAX_PURPOSE_ID);
-        self::assertIdSet('vendorConsents', $vendorConsents, Spec::MIN_VENDOR_ID, Spec::MAX_VENDOR_ID);
-        self::assertIdSet(
+        $this->specialFeatureOptIns = IdSet::normalize(
+            'specialFeatureOptIns',
+            $specialFeatureOptIns,
+            1,
+            Spec::MAX_SPECIAL_FEATURE_ID,
+        );
+        $this->purposesConsent = IdSet::normalize('purposesConsent', $purposesConsent, 1, Spec::MAX_PURPOSE_ID);
+        $this->purposesLITransparency = IdSet::normalize(
+            'purposesLITransparency',
+            $purposesLITransparency,
+            1,
+            Spec::MAX_PURPOSE_ID,
+        );
+        $this->vendorConsents = IdSet::normalize(
+            'vendorConsents',
+            $vendorConsents,
+            Spec::MIN_VENDOR_ID,
+            Spec::MAX_VENDOR_ID,
+        );
+        $this->vendorLegitimateInterests = IdSet::normalize(
             'vendorLegitimateInterests',
             $vendorLegitimateInterests,
             Spec::MIN_VENDOR_ID,
-            Spec::MAX_VENDOR_ID
+            Spec::MAX_VENDOR_ID,
         );
-
-        if ($disclosedVendors !== null) {
-            self::assertIdSet('disclosedVendors', $disclosedVendors, Spec::MIN_VENDOR_ID, Spec::MAX_VENDOR_ID);
-        }
-        if ($allowedVendors !== null) {
-            self::assertIdSet('allowedVendors', $allowedVendors, Spec::MIN_VENDOR_ID, Spec::MAX_VENDOR_ID);
-        }
+        $this->disclosedVendors = $disclosedVendors === null
+            ? null
+            : IdSet::normalize('disclosedVendors', $disclosedVendors, Spec::MIN_VENDOR_ID, Spec::MAX_VENDOR_ID);
+        $this->allowedVendors = $allowedVendors === null
+            ? null
+            : IdSet::normalize('allowedVendors', $allowedVendors, Spec::MIN_VENDOR_ID, Spec::MAX_VENDOR_ID);
 
         foreach ($publisherRestrictions as $restriction) {
             if (!$restriction instanceof PublisherRestriction) {
@@ -108,19 +168,70 @@ final class TcModel implements \JsonSerializable
         }
     }
 
-    /** @param int[] $ids */
-    private static function assertIdSet(string $field, array $ids, int $min, int $max): void
+    /**
+     * Reports what the TCF policy forbids but the wire format can still
+     * express. The constructor only enforces field bounds, so that any string
+     * a CMP produced — conformant or not — can be decoded and inspected; call
+     * this before encoding a model of your own.
+     *
+     * Checks: legitimate interest (established, or required by a publisher
+     * restriction) for a purpose in {@see self::PURPOSES_WITHOUT_LEGITIMATE_INTEREST}
+     * — only purpose 1 when $tcfPolicyVersion predates TCF v2.2 (below 4), as
+     * the string is judged by the policy it declares; the reserved
+     * RestrictionType::UNDEFINED; a vendor given two restriction types for the
+     * same purpose; and Created later than LastUpdated.
+     *
+     * @return string[] human-readable violations; empty if none were found
+     */
+    public function policyViolations(): array
     {
-        foreach ($ids as $id) {
-            if (!is_int($id)) {
-                throw new InvalidArgumentException("{$field} must contain only integers.");
+        $violations = [];
+        $withoutLi = $this->tcfPolicyVersion >= self::TCF_V2_2_POLICY_VERSION
+            ? self::PURPOSES_WITHOUT_LEGITIMATE_INTEREST
+            : [1];
+        $policy = "TCF policy version {$this->tcfPolicyVersion}";
+
+        $forbiddenLi = array_values(array_intersect($this->purposesLITransparency, $withoutLi));
+        if ($forbiddenLi !== []) {
+            $violations[] = 'purposesLITransparency establishes legitimate interest for purposes '
+                . implode(', ', $forbiddenLi) . ", which {$policy} does not allow under that legal basis.";
+        }
+
+        $typesByPurposeAndVendor = [];
+        foreach ($this->publisherRestrictions as $index => $restriction) {
+            if ($restriction->type === RestrictionType::UNDEFINED) {
+                $violations[] = "Publisher restriction {$index} uses the reserved restriction type UNDEFINED.";
             }
-            if ($id < $min || $id > $max) {
-                throw new InvalidArgumentException(
-                    "{$field} contains id {$id}, which is outside the valid range {$min}..{$max}."
-                );
+            if (
+                $restriction->type === RestrictionType::REQUIRE_LEGITIMATE_INTEREST
+                && in_array($restriction->purposeId, $withoutLi, true)
+            ) {
+                $violations[] = "Publisher restriction {$index} requires legitimate interest for purpose "
+                    . "{$restriction->purposeId}, which {$policy} does not allow under that legal basis.";
+            }
+            foreach ($restriction->vendorIds as $vendorId) {
+                $typesByPurposeAndVendor[$restriction->purposeId][$vendorId][$restriction->type->name] = true;
             }
         }
+
+        foreach ($typesByPurposeAndVendor as $purposeId => $typesByVendor) {
+            foreach ($typesByVendor as $vendorId => $types) {
+                if (count($types) > 1) {
+                    $violations[] = "Vendor {$vendorId} has conflicting publisher restrictions for purpose "
+                        . "{$purposeId}: " . implode(', ', array_keys($types)) . '.';
+                }
+            }
+        }
+
+        if ($this->created !== null && $this->lastUpdated !== null && $this->created > $this->lastUpdated) {
+            $violations[] = sprintf(
+                'created (%s) is after lastUpdated (%s).',
+                $this->created->format(\DATE_ATOM),
+                $this->lastUpdated->format(\DATE_ATOM),
+            );
+        }
+
+        return $violations;
     }
 
     /** @return array<string,mixed> */

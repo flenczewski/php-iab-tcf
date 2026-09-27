@@ -27,8 +27,10 @@ jobs:
       - name: Refresh resources/vendor-list.json
         run: composer update-gvl
 
-      - name: Verify the refreshed list still parses
-        run: vendor/bin/phpunit --no-coverage --filter GvlTest
+      # The full suite, not just GvlTest: a push made with GITHUB_TOKEN does not
+      # trigger other workflows, so ci.yml never runs on the commit made below.
+      - name: Run the test suite against the refreshed list
+        run: vendor/bin/phpunit --no-coverage
 
       - name: Commit if changed
         run: |

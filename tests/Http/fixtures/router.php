@@ -32,6 +32,17 @@ if (is_string($path) && preg_match('#^/bytes/(\d+)$#', $path, $m) === 1) {
     return true;
 }
 
+// Sends <chunks> bytes, one every 200 ms: each read is quick, the whole body is not.
+if (is_string($path) && preg_match('#^/drip/(\d+)$#', $path, $m) === 1) {
+    header('Content-Length: ' . $m[1]);
+    for ($i = 0; $i < (int) $m[1]; $i++) {
+        echo 'x';
+        flush();
+        usleep(200_000);
+    }
+    return true;
+}
+
 if (is_string($path) && preg_match('#^/status/(\d{3})$#', $path, $m) === 1) {
     http_response_code((int) $m[1]);
     echo 'status ' . $m[1];
