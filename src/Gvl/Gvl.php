@@ -17,6 +17,15 @@ final class Gvl
 {
     private static ?self $bundled = null;
 
+    /**
+     * Ids of the vendors deleted as of $lastUpdated, as keys. Deletion cannot
+     * change after construction, so it is settled once here rather than by a
+     * date comparison per vendor on every getVendorsWith*() call.
+     *
+     * @var array<int, true>
+     */
+    private readonly array $deletedVendorIds;
+
     /** @param array<int,Vendor> $vendors keyed by vendor id */
     public function __construct(
         public readonly int $gvlSpecificationVersion,
@@ -25,6 +34,13 @@ final class Gvl
         public readonly \DateTimeImmutable $lastUpdated,
         public readonly array $vendors,
     ) {
+        $deleted = [];
+        foreach ($vendors as $vendor) {
+            if ($vendor->isDeletedAt($lastUpdated)) {
+                $deleted[$vendor->id] = true;
+            }
+        }
+        $this->deletedVendorIds = $deleted;
     }
 
     /**
@@ -188,7 +204,7 @@ final class Gvl
     {
         return array_values(array_filter(
             $this->vendors,
-            fn (Vendor $v): bool => ($includeDeleted || !$this->isDeleted($v))
+            fn (Vendor $v): bool => ($includeDeleted || !isset($this->deletedVendorIds[$v->id]))
                 && in_array($id, $declarations($v), true),
         ));
     }
