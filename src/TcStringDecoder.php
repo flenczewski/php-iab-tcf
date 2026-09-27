@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Flenczewski\IabTcf;
 
 use Flenczewski\IabTcf\Exception\IabTcfException;
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 use Flenczewski\IabTcf\Exception\InvalidTcStringException;
 
 /** Decodes a TC String produced by TcStringEncoder (or any spec-compliant TCF v2 encoder) into a TcModel. */
@@ -13,14 +14,33 @@ final class TcStringDecoder
     private const SUPPORTED_CORE_STRING_VERSION = Spec::CORE_STRING_VERSION;
     private const SEGMENT_TYPE_DISCLOSED_VENDORS = 1;
     private const SEGMENT_TYPE_ALLOWED_VENDORS = 2;
+    private const SEGMENT_TYPE_PUBLISHER_TC = 3;
 
     /**
+     * @param int $maxLength longest input accepted, in characters. The default
+     *                       admits anything this package can encode; pass a
+     *                       tighter bound (a few kilobytes) for strings read
+     *                       from cookies or query parameters.
+     *
      * @throws InvalidTcStringException if the string is not a decodable TCF v2 TC String
+     * @throws InvalidArgumentException if $maxLength is below 1
      */
-    public static function decode(string $tcString): TcModel
+    public static function decode(string $tcString, int $maxLength = Spec::MAX_TC_STRING_LENGTH): TcModel
     {
+        if ($maxLength < 1) {
+            throw new InvalidArgumentException("maxLength must be at least 1, got {$maxLength}.");
+        }
         if ($tcString === '') {
             throw new InvalidTcStringException('TC String is empty.');
+        }
+        // Checked before any decoding, so rejecting an oversized string costs
+        // nothing that grows with its length.
+        if (strlen($tcString) > $maxLength) {
+            throw new InvalidTcStringException(sprintf(
+                'TC String is %d characters, longer than the %d-character limit.',
+                strlen($tcString),
+                $maxLength,
+            ));
         }
 
         try {
@@ -44,6 +64,18 @@ final class TcStringDecoder
         // reject it. The extra element is what makes an over-long string
         // detectable at all.
         $segments = explode('.', $tcString, Spec::MAX_SEGMENTS + 1);
+        // Before the core is decoded, so an over-long string is rejected for
+        // what is wrong with it, without first paying for the core. The count
+        // is not reported: the capped explode() cannot know the real one.
+        if (count($segments) > Spec::MAX_SEGMENTS) {
+            throw new InvalidTcStringException(sprintf(
+                'TC String has more than %d segments; a valid one has at most %d (core, plus at most one each of '
+                . 'Disclosed Vendors, Allowed Vendors and Publisher TC).',
+                Spec::MAX_SEGMENTS,
+                Spec::MAX_SEGMENTS,
+            ));
+        }
+
         $core = new BitReader(Base64Url::decodeToBits($segments[0]));
 
         $version = $core->readUint(6);
@@ -84,15 +116,6 @@ final class TcStringDecoder
         $disclosedVendors = null;
         $allowedVendors = null;
 
-        if (count($segments) > Spec::MAX_SEGMENTS) {
-            throw new InvalidTcStringException(sprintf(
-                'TC String has %d segments; a valid one has at most %d (core, plus at most one each of '
-                . 'Disclosed Vendors, Allowed Vendors and Publisher TC).',
-                count($segments),
-                Spec::MAX_SEGMENTS,
-            ));
-        }
-
         $seenSegmentTypes = [];
         for ($i = 1; $i < count($segments); $i++) {
             $reader = new BitReader(Base64Url::decodeToBits($segments[$i]));
@@ -112,8 +135,13 @@ final class TcStringDecoder
             match ($segmentType) {
                 self::SEGMENT_TYPE_DISCLOSED_VENDORS => $disclosedVendors = RangeSection::decode($reader),
                 self::SEGMENT_TYPE_ALLOWED_VENDORS => $allowedVendors = RangeSection::decode($reader),
-                // Segment type 3 (Publisher TC) is intentionally unsupported — skipped.
-                default => null,
+                // Publisher TC is intentionally unsupported — skipped.
+                self::SEGMENT_TYPE_PUBLISHER_TC => null,
+                // 0 would be a second core segment and 4..7 are undefined;
+                // skipping them used to hide a corrupted string.
+                default => throw new InvalidTcStringException(
+                    "TC String segment {$i} has unknown segment type {$segmentType}; only 1..3 are defined."
+                ),
             };
         }
 

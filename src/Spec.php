@@ -75,4 +75,24 @@ final class Spec
      * decode cost without limit.
      */
     public const MAX_SEGMENTS = 4;
+
+    /**
+     * Longest TC String TcStringDecoder accepts by default, in characters.
+     *
+     * Trailing bits are ignored, so without a cap a core segment padded with
+     * megabytes of zeros decodes successfully, after a full base64 pass over
+     * all of it.
+     *
+     * The value is the smallest power of two above the longest string this
+     * package's encoder can produce, so a string it wrote always reads back:
+     * a core segment of 213 bits of fixed fields, two vendor sections of at
+     * most 17 + 65535 bits each, and publisher restrictions of at most
+     * 12 + 4095 * 20 + MAX_PUBLISHER_RESTRICTION_VENDOR_IDS * 17 bits (every
+     * id a single-id range entry) comes to ~221 000 base64 characters, plus
+     * ~11 000 for each of the Disclosed and Allowed Vendors segments.
+     *
+     * Real TC Strings are a few hundred bytes to a few kilobytes; callers that
+     * read them from a cookie should pass a much tighter limit to decode().
+     */
+    public const MAX_TC_STRING_LENGTH = 262_144;
 }

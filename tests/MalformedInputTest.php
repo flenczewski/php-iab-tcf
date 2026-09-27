@@ -6,8 +6,12 @@ namespace Flenczewski\IabTcf\Tests;
 
 use Flenczewski\IabTcf\BitReader;
 use Flenczewski\IabTcf\BitWriter;
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 use Flenczewski\IabTcf\Exception\InvalidTcStringException;
+use Flenczewski\IabTcf\PublisherRestriction;
 use Flenczewski\IabTcf\PublisherRestrictionsCodec;
+use Flenczewski\IabTcf\RestrictionType;
+use Flenczewski\IabTcf\Spec;
 use Flenczewski\IabTcf\TcModel;
 use Flenczewski\IabTcf\TcStringDecoder;
 use Flenczewski\IabTcf\TcStringEncoder;
@@ -57,7 +61,7 @@ final class MalformedInputTest extends TestCase
         $this->expectNotToPerformAssertions();
     }
 
-    public function testUnknownSegmentTypesAreIgnoredNotFatal(): void
+    public function testAPublisherTcSegmentIsSkippedNotFatal(): void
     {
         $valid = TcStringEncoder::encode(new TcModel(cmpId: 7, cmpVersion: 1));
         // Segment type 3 (Publisher TC) is documented as unsupported and skipped.
@@ -67,6 +71,112 @@ final class MalformedInputTest extends TestCase
             ->toBase64Url();
 
         self::assertSame(7, TcStringDecoder::decode($valid . '.' . $publisherTcSegment)->cmpId);
+    }
+
+    /**
+     * Only segment types 1..3 are defined. A second core segment (type 0) or
+     * an undefined type used to be skipped silently, so a corrupted string
+     * decoded as if the segment were not there.
+     *
+     * @dataProvider undefinedSegmentTypes
+     */
+    public function testAnUndefinedSegmentTypeIsRejected(int $segmentType): void
+    {
+        $valid = TcStringEncoder::encode(new TcModel(cmpId: 7, cmpVersion: 1, disclosedVendors: null));
+        $segment = (new BitWriter())->writeUint($segmentType, 3)->writeUint(0, 21)->toBase64Url();
+
+        $this->expectException(InvalidTcStringException::class);
+        $this->expectExceptionMessage("unknown segment type {$segmentType}");
+
+        TcStringDecoder::decode($valid . '.' . $segment);
+    }
+
+    /** @return iterable<string,array{int}> */
+    public static function undefinedSegmentTypes(): iterable
+    {
+        yield 'core (type 0) in a non-core position' => [0];
+        yield 'type 4' => [4];
+        yield 'type 7' => [7];
+    }
+
+    public function testTooManySegmentsAreRejectedBeforeTheCoreIsDecoded(): void
+    {
+        // A core segment that would itself fail to decode: if the segment
+        // count is checked first, the count is what gets reported.
+        $this->expectException(InvalidTcStringException::class);
+        $this->expectExceptionMessage('more than ' . Spec::MAX_SEGMENTS . ' segments');
+
+        TcStringDecoder::decode('!!!!' . str_repeat('.IA', 50));
+    }
+
+    /**
+     * Trailing bits are ignored, so without a length cap a core segment padded
+     * with megabytes of zeros decoded successfully after a full base64 pass.
+     */
+    public function testAStringLongerThanTheCapIsRejectedWithoutBeingDecoded(): void
+    {
+        $tcString = 'CP' . str_repeat('A', Spec::MAX_TC_STRING_LENGTH - 1);
+
+        $this->expectException(InvalidTcStringException::class);
+        $this->expectExceptionMessage('longer than the ' . Spec::MAX_TC_STRING_LENGTH . '-character limit');
+
+        TcStringDecoder::decode($tcString);
+    }
+
+    public function testCallersCanTightenTheLengthCap(): void
+    {
+        $valid = TcStringEncoder::encode(new TcModel(cmpId: 7, cmpVersion: 1));
+
+        self::assertSame(7, TcStringDecoder::decode($valid, strlen($valid))->cmpId);
+
+        $this->expectException(InvalidTcStringException::class);
+        $this->expectExceptionMessage('longer than the ' . (strlen($valid) - 1) . '-character limit');
+
+        TcStringDecoder::decode($valid, strlen($valid) - 1);
+    }
+
+    public function testANonPositiveLengthCapIsRejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('maxLength must be at least 1');
+
+        TcStringDecoder::decode('CP', 0);
+    }
+
+    /**
+     * The cap must never reject a string this package's own encoder produced.
+     * This builds the longest one it can: every vendor section a
+     * non-contiguous bitfield up to id 65535, and the publisher restrictions
+     * spending their whole vendor-id budget on single-id range entries.
+     */
+    public function testTheLongestStringTheEncoderCanProduceFitsUnderTheCap(): void
+    {
+        $oddIds = range(1, Spec::MAX_VENDOR_ID, 2);
+        $restrictions = [];
+        $perRestriction = Spec::MAX_RANGE_ENTRIES;
+        $count = intdiv(Spec::MAX_PUBLISHER_RESTRICTION_VENDOR_IDS, $perRestriction);
+        for ($i = 0; $i < $count; $i++) {
+            $restrictions[] = new PublisherRestriction(
+                $i + 1,
+                RestrictionType::NOT_ALLOWED,
+                array_slice($oddIds, 0, $perRestriction),
+            );
+        }
+
+        $tcString = TcStringEncoder::encode(new TcModel(
+            cmpId: 1,
+            cmpVersion: 1,
+            vendorConsents: $oddIds,
+            vendorLegitimateInterests: $oddIds,
+            publisherRestrictions: $restrictions,
+            disclosedVendors: $oddIds,
+            allowedVendors: $oddIds,
+            created: new \DateTimeImmutable('2026-01-01T00:00:00Z'),
+            lastUpdated: new \DateTimeImmutable('2026-01-01T00:00:00Z'),
+        ));
+
+        self::assertLessThanOrEqual(Spec::MAX_TC_STRING_LENGTH, strlen($tcString));
+        self::assertCount($count, TcStringDecoder::decode($tcString)->publisherRestrictions);
     }
 
     /**
