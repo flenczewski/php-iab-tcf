@@ -22,7 +22,8 @@ final class GvlValue
      * (relative formats such as "now" or "tomorrow" in particular) is rejected:
      * DateTimeImmutable would accept them and make a corrupt list look current.
      */
-    private const ISO_8601_DATE = '/^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?\z/';
+    private const ISO_8601_DATE = '/^\d{4}-\d{2}-\d{2}'
+        . '(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?\z/';
 
     public static function toInt(mixed $value, string $label): int
     {

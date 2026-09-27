@@ -184,7 +184,8 @@ final class Gvl
     {
         return array_values(array_filter(
             $this->vendors,
-            fn (Vendor $v): bool => ($includeDeleted || !$this->isDeleted($v)) && in_array($id, $declarations($v), true),
+            fn (Vendor $v): bool => ($includeDeleted || !$this->isDeleted($v))
+                && in_array($id, $declarations($v), true),
         ));
     }
 
