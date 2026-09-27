@@ -21,6 +21,12 @@ use Flenczewski\IabTcf\Exception\InvalidArgumentException;
  */
 final class TcModel implements \JsonSerializable
 {
+    /**
+     * Purposes a vendor may not process under legitimate interest: purpose 1
+     * never allowed it, and TCF v2.2 withdrew it for purposes 3 to 6.
+     */
+    public const PURPOSES_WITHOUT_LEGITIMATE_INTEREST = [1, 3, 4, 5, 6];
+
     /** Upper-case, as the wire format stores it. */
     public readonly string $consentLanguage;
 
@@ -182,6 +188,69 @@ final class TcModel implements \JsonSerializable
         sort($ids);
 
         return $ids;
+    }
+
+    /**
+     * Reports what the TCF policy forbids but the wire format can still
+     * express. The constructor only enforces field bounds, so that any string
+     * a CMP produced — conformant or not — can be decoded and inspected; call
+     * this before encoding a model of your own.
+     *
+     * Checks: legitimate interest (established, or required by a publisher
+     * restriction) for a purpose in {@see self::PURPOSES_WITHOUT_LEGITIMATE_INTEREST};
+     * the reserved RestrictionType::UNDEFINED; a vendor given two restriction
+     * types for the same purpose; and Created later than LastUpdated.
+     *
+     * @return string[] human-readable violations; empty if none were found
+     */
+    public function policyViolations(): array
+    {
+        $violations = [];
+
+        $forbiddenLi = array_values(array_intersect(
+            $this->purposesLITransparency,
+            self::PURPOSES_WITHOUT_LEGITIMATE_INTEREST,
+        ));
+        if ($forbiddenLi !== []) {
+            $violations[] = 'purposesLITransparency establishes legitimate interest for purposes '
+                . implode(', ', $forbiddenLi) . ', which the TCF policy does not allow under that legal basis.';
+        }
+
+        $typesByPurposeAndVendor = [];
+        foreach ($this->publisherRestrictions as $index => $restriction) {
+            if ($restriction->type === RestrictionType::UNDEFINED) {
+                $violations[] = "Publisher restriction {$index} uses the reserved restriction type UNDEFINED.";
+            }
+            if (
+                $restriction->type === RestrictionType::REQUIRE_LEGITIMATE_INTEREST
+                && in_array($restriction->purposeId, self::PURPOSES_WITHOUT_LEGITIMATE_INTEREST, true)
+            ) {
+                $violations[] = "Publisher restriction {$index} requires legitimate interest for purpose "
+                    . "{$restriction->purposeId}, which the TCF policy does not allow under that legal basis.";
+            }
+            foreach ($restriction->vendorIds as $vendorId) {
+                $typesByPurposeAndVendor[$restriction->purposeId][$vendorId][$restriction->type->name] = true;
+            }
+        }
+
+        foreach ($typesByPurposeAndVendor as $purposeId => $typesByVendor) {
+            foreach ($typesByVendor as $vendorId => $types) {
+                if (count($types) > 1) {
+                    $violations[] = "Vendor {$vendorId} has conflicting publisher restrictions for purpose "
+                        . "{$purposeId}: " . implode(', ', array_keys($types)) . '.';
+                }
+            }
+        }
+
+        if ($this->created !== null && $this->lastUpdated !== null && $this->created > $this->lastUpdated) {
+            $violations[] = sprintf(
+                'created (%s) is after lastUpdated (%s).',
+                $this->created->format(\DATE_ATOM),
+                $this->lastUpdated->format(\DATE_ATOM),
+            );
+        }
+
+        return $violations;
     }
 
     /** @return array<string,mixed> */
