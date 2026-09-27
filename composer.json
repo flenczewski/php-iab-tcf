@@ -23,7 +23,7 @@
         "source": "https://github.com/flenczewski/php-iab-tcf"
     },
     "require": {
-        "php": ">=8.1",
+        "php": "^8.1",
         "ext-json": "*"
     },
     "require-dev": {

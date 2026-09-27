@@ -5,6 +5,99 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Planned as 2.2.0. As with 2.1.0, several inputs that were accepted are now
+rejected, and the GVL queries return fewer vendors by default — see
+**Changed** — so this is a minor, not a patch, release.
+
+### Fixed
+
+- **The encoder could produce publisher restrictions its own decoder rejects.**
+  `PublisherRestrictionsCodec::decode()` caps the vendor ids the whole section
+  may expand to, but `encode()` never checked the same budget — two
+  restrictions over `range(1, 40000)` made a 67-character string that
+  `decode()` refused. `encode()` now throws `InvalidArgumentException` instead.
+- **Deleted vendors were treated as live.** The Global Vendor List keeps a
+  deleted vendor's entry, with a `deletedDate`, which `Vendor` ignored: 189 of
+  the 1211 vendors in the bundled list are deleted, yet
+  `getVendorsWithConsentPurpose(1)` returned 136 of them and
+  `validateConsents()` said nothing about consent given to one. See **Changed**
+  and **Added**.
+- **Two `TypeError`s escaped the `IabTcfException` contract.**
+  `PublisherRestriction` did not check that `vendorIds` are integers (a numeric
+  string or float failed at encode time, in `BitWriter`), and
+  `EpochTime::fromDeciseconds()` overflowed into a float past
+  `PHP_INT_MAX / 100000`. Both now throw `InvalidArgumentException`.
+- **A GVL date could be relative or impossible.** `lastUpdated` accepted "now"
+  and "tomorrow" — the very thing the empty-string check exists to prevent —
+  and "2026-02-31" rolled over into March. GVL dates must now be absolute
+  ISO 8601 and valid.
+- **`TcModel` did not equal its own round trip.** Ids were stored as given and
+  codes in the caller's case, while the wire format carries only a sorted,
+  de-duplicated set and upper-case letters. `TcModel` and
+  `PublisherRestriction` now store that normalised form.
+- **The "too many segments" error reported a wrong count** ("has 5 segments"
+  for 51), and the core segment was decoded before the count was checked.
+- **`update-gvl` wrote its file non-atomically**, so an interrupted run left a
+  truncated list behind, and when the package was installed as a dependency it
+  defaulted to writing inside `vendor/`.
+- **`StreamHttpClient` discarded why an open failed**, reporting a generic
+  guess instead of PHP's message.
+
+### Changed
+
+- `TcStringDecoder::decode()` rejects input longer than the new
+  `Spec::MAX_TC_STRING_LENGTH` (256 KiB) before decoding anything. The cap sits
+  above the longest string this package can encode (~229 000 characters,
+  covered by a test).
+- Segment types 0 and 4–7 are rejected with `InvalidTcStringException`; they
+  used to be skipped silently. Only 1–3 are defined.
+- `Gvl::getVendorsWith*()` leave out vendors deleted as of the list's
+  `lastUpdated`. Pass `includeDeleted: true` for the previous result.
+  `Gvl::$vendors` still holds every entry.
+- `Gvl::validateConsents()` reports consent or legitimate interest given to a
+  deleted vendor.
+- `TcModel`'s id lists are sorted and de-duplicated and its `consentLanguage` /
+  `publisherCC` upper-cased; `PublisherRestriction::$vendorIds` likewise.
+  Constructor signatures are unchanged.
+- `update-gvl` requires an output path when run from an installed dependency.
+- The `update-gvl` workflow runs the whole suite, not only `GvlTest`, before
+  committing: a push made with `GITHUB_TOKEN` does not trigger CI.
+- `composer.json` requires `php: ^8.1` rather than the open-ended `>=8.1`.
+
+### Added
+
+- `TcStringDecoder::decode()` takes an optional `$maxLength` to tighten the
+  length cap (recommended for cookie input).
+- `TcStringEncoder::encode()` takes an optional `$now`, stamped into
+  Created/LastUpdated when the model leaves them null, for reproducible output.
+- `TcModel::policyViolations()` reports what the TCF policy forbids but the
+  wire format can express: legitimate interest for purpose 1 or 3–6, the
+  reserved `UNDEFINED` restriction type, conflicting restrictions for one
+  vendor and purpose, and Created after LastUpdated.
+- `Vendor::$deletedDate`, `Vendor::isDeletedAt()` and `Gvl::isDeleted()`.
+- `StreamHttpClient`'s `totalTimeoutSeconds` (default 60) bounds the whole
+  request; `timeoutSeconds` only ever bounded each read.
+- `Psr18HttpClient`'s `maxResponseBytes` (default 64 MB) — it used to buffer
+  whatever the endpoint sent.
+
+### Performance
+
+- Base64url↔bit conversion uses lookup tables: decoding a typical TC String
+  drops from ~250 µs to ~30 µs.
+
+### Documentation
+
+- The README claimed the bundled GVL lags the live one by at most a week.
+  Composer installs tagged releases, so it is the list as of the release you
+  installed; the README and `Gvl::bundled()` now say so.
+- New README sections cover caching a parsed `Gvl`, deleted vendors, the length
+  cap, the encoder's clock, policy checks, model normalisation and the HTTP
+  timeouts. `StreamHttpClient` documents that it fetches any stream-wrapper URL
+  (`file://` included), so its URL must never come from untrusted input.
+- Removed the internal planning notes under `docs/superpowers/`.
+
 ## [2.1.0] - 2026-09-12
 
 A validation and documentation pass. No API was removed, but inputs that 2.0.0
