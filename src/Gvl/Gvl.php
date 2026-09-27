@@ -110,95 +110,81 @@ final class Gvl
         }
 
         return new self(
-            gvlSpecificationVersion: self::toInt($data['gvlSpecificationVersion'], 'gvlSpecificationVersion'),
-            vendorListVersion: self::toInt($data['vendorListVersion'], 'vendorListVersion'),
-            tcfPolicyVersion: self::toInt($data['tcfPolicyVersion'], 'tcfPolicyVersion'),
-            lastUpdated: self::parseLastUpdated($data['lastUpdated']),
+            gvlSpecificationVersion: self::toInt($data, 'gvlSpecificationVersion'),
+            vendorListVersion: self::toInt($data, 'vendorListVersion'),
+            tcfPolicyVersion: self::toInt($data, 'tcfPolicyVersion'),
+            lastUpdated: GvlValue::toDate($data['lastUpdated'], 'Global Vendor List "lastUpdated"'),
             vendors: $vendors,
         );
     }
 
-    private static function toInt(mixed $value, string $field): int
+    /** @param array<array-key,mixed> $data */
+    private static function toInt(array $data, string $field): int
     {
-        // \z, not $: PCRE's $ also matches before a trailing newline, which
-        // would let "3\n" through and cast to 3, hiding corrupt input.
-        if (!is_int($value) && !(is_string($value) && preg_match('/^-?\d+\z/', $value) === 1)) {
-            throw new GvlException(
-                "Global Vendor List \"{$field}\" must be an integer, got " . get_debug_type($value) . '.'
-            );
-        }
-
-        // A digit string longer than PHP_INT_MAX saturates on cast rather than
-        // failing, so "99999999999999999999999" would become a vendor keyed by
-        // PHP_INT_MAX. The same value written as a JSON number is already
-        // rejected (it arrives as a float); the string spelling must not be the
-        // way around that check.
-        if (is_string($value) && (string) (int) $value !== $value) {
-            throw new GvlException(
-                "Global Vendor List \"{$field}\" is {$value}, which is not representable as an integer."
-            );
-        }
-
-        return (int) $value;
+        return GvlValue::toInt($data[$field], "Global Vendor List \"{$field}\"");
     }
 
-    private static function parseLastUpdated(mixed $value): \DateTimeImmutable
+    /**
+     * The getVendorsWith*() queries leave out vendors that were deleted from
+     * the list on or before {@see self::$lastUpdated}: the GVL keeps a deleted
+     * vendor's entry (with its old declarations) only so that existing TC
+     * Strings naming it still resolve. Pass `includeDeleted: true` to get them
+     * back, as every query did before 2.2.0.
+     *
+     * @return Vendor[]
+     */
+    public function getVendorsWithConsentPurpose(int $purposeId, bool $includeDeleted = false): array
     {
-        // new DateTimeImmutable('') silently means "now", which would make a
-        // corrupt list look freshly updated — reject empty input explicitly.
-        if (!is_string($value) || trim($value) === '') {
-            throw new GvlException('Global Vendor List "lastUpdated" must be a non-empty date string.');
-        }
-
-        try {
-            return new \DateTimeImmutable($value);
-        } catch (\Exception $e) {
-            throw new GvlException("Global Vendor List \"lastUpdated\" is not a valid date: \"{$value}\".", 0, $e);
-        }
+        return $this->vendorsDeclaring($purposeId, static fn (Vendor $v): array => $v->purposes, $includeDeleted);
     }
 
-    /** @return Vendor[] */
-    public function getVendorsWithConsentPurpose(int $purposeId): array
+    /** @return Vendor[] see {@see self::getVendorsWithConsentPurpose()} for $includeDeleted */
+    public function getVendorsWithLegIntPurpose(int $purposeId, bool $includeDeleted = false): array
+    {
+        return $this->vendorsDeclaring($purposeId, static fn (Vendor $v): array => $v->legIntPurposes, $includeDeleted);
+    }
+
+    /** @return Vendor[] see {@see self::getVendorsWithConsentPurpose()} for $includeDeleted */
+    public function getVendorsWithFeature(int $featureId, bool $includeDeleted = false): array
+    {
+        return $this->vendorsDeclaring($featureId, static fn (Vendor $v): array => $v->features, $includeDeleted);
+    }
+
+    /** @return Vendor[] see {@see self::getVendorsWithConsentPurpose()} for $includeDeleted */
+    public function getVendorsWithSpecialFeature(int $specialFeatureId, bool $includeDeleted = false): array
+    {
+        return $this->vendorsDeclaring(
+            $specialFeatureId,
+            static fn (Vendor $v): array => $v->specialFeatures,
+            $includeDeleted,
+        );
+    }
+
+    /** @return Vendor[] see {@see self::getVendorsWithConsentPurpose()} for $includeDeleted */
+    public function getVendorsWithSpecialPurpose(int $specialPurposeId, bool $includeDeleted = false): array
+    {
+        return $this->vendorsDeclaring(
+            $specialPurposeId,
+            static fn (Vendor $v): array => $v->specialPurposes,
+            $includeDeleted,
+        );
+    }
+
+    /** Whether the vendor had been deleted from the list as of {@see self::$lastUpdated}. */
+    public function isDeleted(Vendor $vendor): bool
+    {
+        return $vendor->isDeletedAt($this->lastUpdated);
+    }
+
+    /**
+     * @param callable(Vendor): int[] $declarations
+     * @return Vendor[]
+     */
+    private function vendorsDeclaring(int $id, callable $declarations, bool $includeDeleted): array
     {
         return array_values(array_filter(
             $this->vendors,
-            static fn (Vendor $v): bool => in_array($purposeId, $v->purposes, true),
-        ));
-    }
-
-    /** @return Vendor[] */
-    public function getVendorsWithLegIntPurpose(int $purposeId): array
-    {
-        return array_values(array_filter(
-            $this->vendors,
-            static fn (Vendor $v): bool => in_array($purposeId, $v->legIntPurposes, true),
-        ));
-    }
-
-    /** @return Vendor[] */
-    public function getVendorsWithFeature(int $featureId): array
-    {
-        return array_values(array_filter(
-            $this->vendors,
-            static fn (Vendor $v): bool => in_array($featureId, $v->features, true),
-        ));
-    }
-
-    /** @return Vendor[] */
-    public function getVendorsWithSpecialFeature(int $specialFeatureId): array
-    {
-        return array_values(array_filter(
-            $this->vendors,
-            static fn (Vendor $v): bool => in_array($specialFeatureId, $v->specialFeatures, true),
-        ));
-    }
-
-    /** @return Vendor[] */
-    public function getVendorsWithSpecialPurpose(int $specialPurposeId): array
-    {
-        return array_values(array_filter(
-            $this->vendors,
-            static fn (Vendor $v): bool => in_array($specialPurposeId, $v->specialPurposes, true),
+            fn (Vendor $v): bool => ($includeDeleted || !$this->isDeleted($v)) && in_array($id, $declarations($v), true),
         ));
     }
 
@@ -237,6 +223,11 @@ final class Gvl
                 continue;
             }
 
+            if ($this->isDeleted($this->vendors[$vendorId])) {
+                $problems[] = "Vendor {$vendorId} has consent in the TcModel but was deleted from this GVL.";
+                continue;
+            }
+
             if ($this->vendors[$vendorId]->purposes === [] && $this->vendors[$vendorId]->flexiblePurposes === []) {
                 $problems[] = "Vendor {$vendorId} has consent in the TcModel but declares no consent-based "
                     . 'purposes in the GVL.';
@@ -247,6 +238,12 @@ final class Gvl
             if (!isset($this->vendors[$vendorId])) {
                 $problems[] = "Vendor {$vendorId} has legitimate interest in the TcModel but does not exist "
                     . 'in this GVL.';
+                continue;
+            }
+
+            if ($this->isDeleted($this->vendors[$vendorId])) {
+                $problems[] = "Vendor {$vendorId} has legitimate interest in the TcModel but was deleted from "
+                    . 'this GVL.';
                 continue;
             }
 

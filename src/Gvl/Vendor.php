@@ -17,6 +17,8 @@ final class Vendor
      * @param int[] $specialPurposes Special Purpose ids the vendor uses
      * @param int[] $features Feature ids the vendor uses
      * @param int[] $specialFeatures Special Feature ids the vendor requires opt-in for
+     * @param \DateTimeImmutable|null $deletedDate when the vendor was deleted from the list; the GVL keeps
+     *                                          deleted entries so existing TC Strings naming them still resolve
      */
     public function __construct(
         public readonly int $id,
@@ -27,7 +29,14 @@ final class Vendor
         public readonly array $specialPurposes = [],
         public readonly array $features = [],
         public readonly array $specialFeatures = [],
+        public readonly ?\DateTimeImmutable $deletedDate = null,
     ) {
+    }
+
+    /** Whether the vendor had been deleted from the list as of $moment. */
+    public function isDeletedAt(\DateTimeInterface $moment): bool
+    {
+        return $this->deletedDate !== null && $this->deletedDate <= $moment;
     }
 
     /** @param array<string,mixed> $data one entry from the GVL's "vendors" map */
@@ -61,6 +70,10 @@ final class Vendor
             specialPurposes: self::intList($data, 'specialPurposes'),
             features: self::intList($data, 'features'),
             specialFeatures: self::intList($data, 'specialFeatures'),
+            // Absent and null both mean "not deleted"; anything else must be a real date.
+            deletedDate: ($data['deletedDate'] ?? null) === null
+                ? null
+                : GvlValue::toDate($data['deletedDate'], 'Vendor field "deletedDate"'),
         );
     }
 
@@ -87,26 +100,7 @@ final class Vendor
 
     private static function toInt(mixed $value, string $field): int
     {
-        // \z, not $: PCRE's $ also matches before a trailing newline, which
-        // would let "3\n" through and cast to 3, hiding corrupt input.
-        if (!is_int($value) && !(is_string($value) && preg_match('/^-?\d+\z/', $value) === 1)) {
-            throw new GvlException(
-                "Vendor field \"{$field}\" must be an integer, got " . get_debug_type($value) . '.'
-            );
-        }
-
-        // A digit string longer than PHP_INT_MAX saturates on cast rather than
-        // failing, so "99999999999999999999999" would become a vendor keyed by
-        // PHP_INT_MAX. The same value written as a JSON number is already
-        // rejected (it arrives as a float); the string spelling must not be the
-        // way around that check.
-        if (is_string($value) && (string) (int) $value !== $value) {
-            throw new GvlException(
-                "Vendor field \"{$field}\" is {$value}, which is not representable as an integer."
-            );
-        }
-
-        return (int) $value;
+        return GvlValue::toInt($value, "Vendor field \"{$field}\"");
     }
 
     private static function toString(mixed $value, string $field): string
