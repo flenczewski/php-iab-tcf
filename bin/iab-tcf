@@ -68,6 +68,48 @@ function runDecode(?string $tcString): int
     return 0;
 }
 
+/**
+ * Writes beside the target, then renames over it: rename() within one
+ * directory is atomic, so an interrupted run leaves the old list intact
+ * instead of a truncated file that the next Gvl::bundled() fails to parse.
+ */
+function writeAtomically(string $target, string $contents): bool
+{
+    // Write through a symlink to the file it points at, as a plain write
+    // would, rather than replacing the link itself with a regular file.
+    $path = is_link($target) ? (realpath($target) ?: $target) : $target;
+    $directory = dirname($path);
+
+    // tempnam() creates the file exclusively under an unpredictable name, so
+    // nothing planted beside the target (a symlink, say) can be written through.
+    $temporary = @tempnam($directory, basename($path) . '.');
+    if ($temporary === false) {
+        return false;
+    }
+    // tempnam() falls back to the system temp dir when $directory is not
+    // writable, and a rename() from there would not be atomic.
+    if (dirname($temporary) !== (realpath($directory) ?: $directory)) {
+        @unlink($temporary);
+
+        return false;
+    }
+
+    // tempnam() creates the file 0600; keep the target's mode, or give a new
+    // file the mode a plain write would have.
+    $mode = is_file($path) ? fileperms($path) & 0777 : 0666 & ~umask();
+    if (
+        @file_put_contents($temporary, $contents) !== strlen($contents)
+        || !@chmod($temporary, $mode)
+        || !@rename($temporary, $path)
+    ) {
+        @unlink($temporary);
+
+        return false;
+    }
+
+    return true;
+}
+
 function runUpdateGvl(?string $targetPath): int
 {
     if ($targetPath === null && !IAB_TCF_OWN_CHECKOUT) {
@@ -99,12 +141,7 @@ function runUpdateGvl(?string $targetPath): int
         return 1;
     }
 
-    // Write beside the target, then rename over it: rename() within one
-    // directory is atomic, so an interrupted run leaves the old list intact
-    // instead of a truncated file that the next Gvl::bundled() fails to parse.
-    $temporary = $target . '.' . getmypid() . '.tmp';
-    if (@file_put_contents($temporary, $formatted) !== strlen($formatted) || !@rename($temporary, $target)) {
-        @unlink($temporary);
+    if (!writeAtomically($target, $formatted)) {
         fwrite(STDERR, "Error: could not write to {$target}.\n");
 
         return 1;
