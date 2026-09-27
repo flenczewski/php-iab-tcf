@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Planned as 2.2.0. As with 2.1.0, several inputs that were accepted are now
-rejected, and the GVL queries return fewer vendors by default — see
+## [2.2.0] - 2026-09-27
+
+As with 2.1.0, several inputs that were accepted are now rejected, and the GVL queries return fewer vendors by default — see
 **Changed** — so this is a minor, not a patch, release.
 
 ### Fixed
@@ -20,7 +21,7 @@ rejected, and the GVL queries return fewer vendors by default — see
   `decode()` refused. `encode()` now throws `InvalidArgumentException` instead.
 - **Deleted vendors were treated as live.** The Global Vendor List keeps a
   deleted vendor's entry, with a `deletedDate`, which `Vendor` ignored: 189 of
-  the 1211 vendors in the bundled list are deleted, yet
+  the 1214 vendors in the bundled list are deleted, yet
   `getVendorsWithConsentPurpose(1)` returned 136 of them and
   `validateConsents()` said nothing about consent given to one. See **Changed**
   and **Added**.
@@ -41,7 +42,9 @@ rejected, and the GVL queries return fewer vendors by default — see
   for 51), and the core segment was decoded before the count was checked.
 - **`update-gvl` wrote its file non-atomically**, so an interrupted run left a
   truncated list behind, and when the package was installed as a dependency it
-  defaulted to writing inside `vendor/`.
+  defaulted to writing inside `vendor/`. It now writes a `tempnam()` file
+  beside the target and renames it over, writing through a symlinked target and
+  keeping the file's mode.
 - **`StreamHttpClient` discarded why an open failed**, reporting a generic
   guess instead of PHP's message.
 
@@ -83,12 +86,16 @@ rejected, and the GVL queries return fewer vendors by default — see
   Connecting and reading the headers happen inside `fopen()`, where only the
   per-read timeout applies — see the README.
 - `Psr18HttpClient`'s `maxResponseBytes` (default 64 MB) — it used to buffer
-  whatever the endpoint sent.
+  whatever the endpoint sent. The body is read in chunks, and a read error
+  (PSR-7's `\RuntimeException`) is wrapped in `GvlException`.
 
 ### Performance
 
 - Base64url↔bit conversion uses lookup tables: decoding a typical TC String
   drops from ~250 µs to ~30 µs.
+- `Gvl` settles which vendors are deleted once, at construction, so the
+  `getVendorsWith*()` filter is a key lookup rather than a date comparison per
+  vendor per call.
 
 ### Documentation
 
