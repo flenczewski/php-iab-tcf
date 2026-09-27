@@ -17,11 +17,22 @@ use Psr\Http\Message\RequestFactoryInterface;
  * suggests — instantiate this class solely if your project already has them.
  *
  * Timeouts are the wrapped client's to configure. The body is read in chunks
- * and refused past $maxResponseBytes, as {@see StreamHttpClient} does.
+ * and refused past $maxResponseBytes, as {@see StreamHttpClient} does — but
+ * that bounds only what this class copies into memory. A client that buffers
+ * the whole response before returning it (Guzzle's default) has already
+ * downloaded it by then; to stop an oversized transfer itself, have the client
+ * stream the body (Guzzle: 'stream' => true).
  */
 final class Psr18HttpClient implements HttpClient
 {
     private const READ_CHUNK_BYTES = 65536;
+
+    /**
+     * A filtered stream (gzip decoding, say) may return '' while it consumes
+     * input, so one empty read is no proof of a stall — but a stream that keeps
+     * returning nothing without reaching eof() would otherwise spin forever.
+     */
+    private const MAX_CONSECUTIVE_EMPTY_READS = 1000;
 
     /** @param positive-int $maxResponseBytes */
     public function __construct(
@@ -61,8 +72,29 @@ final class Psr18HttpClient implements HttpClient
         }
 
         $body = '';
+        $emptyReads = 0;
         while (!$stream->eof()) {
-            $body .= $stream->read(self::READ_CHUNK_BYTES);
+            try {
+                $chunk = $stream->read(self::READ_CHUNK_BYTES);
+            } catch (\RuntimeException $e) {
+                // PSR-7's read() throws on I/O errors, e.g. a connection
+                // dropped mid-body; keep it inside the HttpClient contract.
+                throw new GvlException(
+                    "HTTP response from {$url} could not be read to completion: {$e->getMessage()}",
+                    0,
+                    $e,
+                );
+            }
+
+            if ($chunk === '') {
+                if (++$emptyReads >= self::MAX_CONSECUTIVE_EMPTY_READS) {
+                    throw new GvlException("HTTP response from {$url} stopped producing data before its end.");
+                }
+                continue;
+            }
+            $emptyReads = 0;
+
+            $body .= $chunk;
             if (strlen($body) > $this->maxResponseBytes) {
                 throw $this->tooLarge($url);
             }

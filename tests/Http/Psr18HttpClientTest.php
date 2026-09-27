@@ -107,6 +107,47 @@ final class Psr18HttpClientTest extends TestCase
         }
     }
 
+    /** PSR-7 read() throws \RuntimeException on I/O errors; that must not escape the HttpClient contract. */
+    public function testAReadFailureMidBodyIsWrappedAndKeepsItsCause(): void
+    {
+        $cause = new \RuntimeException('connection reset by peer');
+        $stream = new ScriptedReadStream(static fn (int $read): string => $read === 1 ? '{"vendor' : throw $cause);
+        $client = new RecordingPsr18Client((new Response(200))->withBody($stream));
+
+        try {
+            (new Psr18HttpClient($client, new Psr17Factory()))->get('https://example.test/l');
+            self::fail('Expected a GvlException.');
+        } catch (GvlException $e) {
+            self::assertStringContainsString('could not be read to completion', $e->getMessage());
+            self::assertStringContainsString('connection reset by peer', $e->getMessage());
+            self::assertSame($cause, $e->getPrevious());
+        }
+    }
+
+    public function testABodyThatNeverEndsNorProducesDataIsRefusedInsteadOfSpinning(): void
+    {
+        $stream = new ScriptedReadStream(static fn (): string => '');
+        $client = new RecordingPsr18Client((new Response(200))->withBody($stream));
+
+        try {
+            (new Psr18HttpClient($client, new Psr17Factory()))->get('https://example.test/l');
+            self::fail('Expected a GvlException.');
+        } catch (GvlException $e) {
+            self::assertStringContainsString('stopped producing data', $e->getMessage());
+            self::assertLessThanOrEqual(1000, $stream->reads);
+        }
+    }
+
+    /** A decoding stream may return '' while it consumes input; occasional empty reads are not a stall. */
+    public function testOccasionalEmptyReadsAreTolerated(): void
+    {
+        $parts = ['', '{"a"', '', '', ':1}'];
+        $stream = new ScriptedReadStream(static fn (int $read): string => $parts[$read - 1], eofAfterReads: 5);
+        $client = new RecordingPsr18Client((new Response(200))->withBody($stream));
+
+        self::assertSame('{"a":1}', (new Psr18HttpClient($client, new Psr17Factory()))->get('https://example.test/l'));
+    }
+
     public function testAResponseExactlyAtTheByteLimitIsAccepted(): void
     {
         $client = new RecordingPsr18Client(new Response(200, [], str_repeat('x', 100)));
