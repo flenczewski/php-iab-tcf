@@ -22,10 +22,15 @@ use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 final class TcModel implements \JsonSerializable
 {
     /**
-     * Purposes a vendor may not process under legitimate interest: purpose 1
-     * never allowed it, and TCF v2.2 withdrew it for purposes 3 to 6.
+     * Purposes a vendor may not process under legitimate interest as of TCF
+     * v2.2 (policy version 4): purpose 1 never allowed it, and v2.2 withdrew
+     * it for purposes 3 to 6. Under earlier policy versions only purpose 1 is
+     * off limits; see {@see self::policyViolations()}.
      */
     public const PURPOSES_WITHOUT_LEGITIMATE_INTEREST = [1, 3, 4, 5, 6];
+
+    /** The TCF v2.2 policy version, the first to withdraw legitimate interest for purposes 3 to 6. */
+    private const TCF_V2_2_POLICY_VERSION = 4;
 
     /** Upper-case, as the wire format stores it. */
     public readonly string $consentLanguage;
@@ -197,23 +202,26 @@ final class TcModel implements \JsonSerializable
      * this before encoding a model of your own.
      *
      * Checks: legitimate interest (established, or required by a publisher
-     * restriction) for a purpose in {@see self::PURPOSES_WITHOUT_LEGITIMATE_INTEREST};
-     * the reserved RestrictionType::UNDEFINED; a vendor given two restriction
-     * types for the same purpose; and Created later than LastUpdated.
+     * restriction) for a purpose in {@see self::PURPOSES_WITHOUT_LEGITIMATE_INTEREST}
+     * — only purpose 1 when $tcfPolicyVersion predates TCF v2.2 (below 4), as
+     * the string is judged by the policy it declares; the reserved
+     * RestrictionType::UNDEFINED; a vendor given two restriction types for the
+     * same purpose; and Created later than LastUpdated.
      *
      * @return string[] human-readable violations; empty if none were found
      */
     public function policyViolations(): array
     {
         $violations = [];
+        $withoutLi = $this->tcfPolicyVersion >= self::TCF_V2_2_POLICY_VERSION
+            ? self::PURPOSES_WITHOUT_LEGITIMATE_INTEREST
+            : [1];
+        $policy = "TCF policy version {$this->tcfPolicyVersion}";
 
-        $forbiddenLi = array_values(array_intersect(
-            $this->purposesLITransparency,
-            self::PURPOSES_WITHOUT_LEGITIMATE_INTEREST,
-        ));
+        $forbiddenLi = array_values(array_intersect($this->purposesLITransparency, $withoutLi));
         if ($forbiddenLi !== []) {
             $violations[] = 'purposesLITransparency establishes legitimate interest for purposes '
-                . implode(', ', $forbiddenLi) . ', which the TCF policy does not allow under that legal basis.';
+                . implode(', ', $forbiddenLi) . ", which {$policy} does not allow under that legal basis.";
         }
 
         $typesByPurposeAndVendor = [];
@@ -223,10 +231,10 @@ final class TcModel implements \JsonSerializable
             }
             if (
                 $restriction->type === RestrictionType::REQUIRE_LEGITIMATE_INTEREST
-                && in_array($restriction->purposeId, self::PURPOSES_WITHOUT_LEGITIMATE_INTEREST, true)
+                && in_array($restriction->purposeId, $withoutLi, true)
             ) {
                 $violations[] = "Publisher restriction {$index} requires legitimate interest for purpose "
-                    . "{$restriction->purposeId}, which the TCF policy does not allow under that legal basis.";
+                    . "{$restriction->purposeId}, which {$policy} does not allow under that legal basis.";
             }
             foreach ($restriction->vendorIds as $vendorId) {
                 $typesByPurposeAndVendor[$restriction->purposeId][$vendorId][$restriction->type->name] = true;

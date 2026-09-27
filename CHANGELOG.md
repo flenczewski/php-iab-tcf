@@ -73,7 +73,8 @@ rejected, and the GVL queries return fewer vendors by default — see
 - `TcStringEncoder::encode()` takes an optional `$now`, stamped into
   Created/LastUpdated when the model leaves them null, for reproducible output.
 - `TcModel::policyViolations()` reports what the TCF policy forbids but the
-  wire format can express: legitimate interest for purpose 1 or 3–6, the
+  wire format can express: legitimate interest for purpose 1 or 3–6 (purpose 1
+  only under policy versions before TCF v2.2), the
   reserved `UNDEFINED` restriction type, conflicting restrictions for one
   vendor and purpose, and Created after LastUpdated.
 - `Vendor::$deletedDate`, `Vendor::isDeletedAt()` and `Gvl::isDeleted()`.

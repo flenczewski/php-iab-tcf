@@ -53,6 +53,34 @@ final class TcModelPolicyTest extends TestCase
         self::assertStringContainsString('requires legitimate interest for purpose 4', $violations[0]);
     }
 
+    /** A string is judged by the policy it declares: before TCF v2.2, purposes 3 to 6 could use legitimate interest. */
+    public function testPurposes3To6MayUseLegitimateInterestUnderPolicyVersionsBeforeTcf22(): void
+    {
+        $model = new TcModel(
+            cmpId: 1,
+            cmpVersion: 1,
+            tcfPolicyVersion: 3,
+            purposesLITransparency: [1, 2, 3, 4, 5, 6, 7],
+            publisherRestrictions: [
+                new PublisherRestriction(4, RestrictionType::REQUIRE_LEGITIMATE_INTEREST, [7]),
+                new PublisherRestriction(1, RestrictionType::REQUIRE_LEGITIMATE_INTEREST, [7]),
+            ],
+        );
+
+        $violations = $model->policyViolations();
+
+        self::assertCount(2, $violations, 'Purpose 1 never allowed legitimate interest.');
+        self::assertStringContainsString('for purposes 1, which TCF policy version 3', $violations[0]);
+        self::assertStringContainsString('requires legitimate interest for purpose 1,', $violations[1]);
+    }
+
+    public function testTcf22IsThePolicyVersionThatWithdrewLegitimateInterestForPurposes3To6(): void
+    {
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, tcfPolicyVersion: 4, purposesLITransparency: [3]);
+
+        self::assertCount(1, $model->policyViolations());
+    }
+
     public function testTheUndefinedRestrictionTypeIsReported(): void
     {
         $model = new TcModel(cmpId: 1, cmpVersion: 1, publisherRestrictions: [
