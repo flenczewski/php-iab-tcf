@@ -1,8 +1,8 @@
 {
     "gvlSpecificationVersion": 3,
-    "vendorListVersion": 179,
+    "vendorListVersion": 180,
     "tcfPolicyVersion": 5,
-    "lastUpdated": "2026-10-01T16:00:19Z",
+    "lastUpdated": "2026-10-08T16:00:18Z",
     "purposes": {
         "1": {
             "id": 1,
@@ -4068,7 +4068,7 @@
                     "legIntClaim": "https://www.openx.com/privacy-center/openx-ad-exchange-privacy-policy/"
                 }
             ],
-            "usesNonCookieAccess": true,
+            "usesNonCookieAccess": false,
             "dataRetention": {
                 "stdRetention": 90,
                 "purposes": [],
@@ -5686,7 +5686,7 @@
                 10,
                 11
             ],
-            "deviceStorageDisclosureUrl": "https://loopme.ai/deviceStorageDisclosure.json"
+            "deviceStorageDisclosureUrl": "https://loopme.ai/devicestoragedisclosure.json"
         },
         "110": {
             "id": 110,
@@ -11859,6 +11859,7 @@
             "specialFeatures": [
                 1
             ],
+            "deletedDate": "2026-10-08T06:33:14.74Z",
             "cookieMaxAgeSeconds": null,
             "usesCookies": false,
             "cookieRefresh": false,
@@ -12767,7 +12768,52 @@
                 {
                     "langId": "en",
                     "privacy": "https://www.gemius.com/privacy-policy.html",
-                    "legIntClaim": "https://www.gemius.com/privacy-policy.html"
+                    "legIntClaim": "https://gemius.com/documents/57/20240812_LIC_Gemius.pdf"
+                },
+                {
+                    "langId": "pl",
+                    "privacy": "https://gemius.com/pl/polityka-prywatnosci/",
+                    "legIntClaim": "https://gemius.com/documents/57/20240812_LIC_Gemius.pdf"
+                },
+                {
+                    "langId": "hu",
+                    "privacy": "https://gemius.com/hu/adatvedelmi-tajekoztato/",
+                    "legIntClaim": "https://gemius.com/documents/57/20240812_LIC_Gemius.pdf"
+                },
+                {
+                    "langId": "de",
+                    "privacy": "https://gemius.com/de/datenschutzpolitik/",
+                    "legIntClaim": "https://gemius.com/documents/57/20240812_LIC_Gemius.pdf"
+                },
+                {
+                    "langId": "lv",
+                    "privacy": "https://gemius.com/lv/privatuma-politika/",
+                    "legIntClaim": "https://gemius.com/documents/57/20240812_LIC_Gemius.pdf"
+                },
+                {
+                    "langId": "lt",
+                    "privacy": "https://gemius.com/lt/privatumo-politika/",
+                    "legIntClaim": "https://gemius.com/documents/57/20240812_LIC_Gemius.pdf"
+                },
+                {
+                    "langId": "tr",
+                    "privacy": "https://gemius.com/tr/gizlilik-politikasi/",
+                    "legIntClaim": "https://gemius.com/documents/57/20240812_LIC_Gemius.pdf"
+                },
+                {
+                    "langId": "uk",
+                    "privacy": "https://gemius.com/ua/%D0%BC%D0%B8-%D0%BD%D0%B0%D0%B4%D0%B0%D1%94%D0%BC%D0%BE-%D0%BF%D0%BE%D1%81%D0%BB%D1%83%D0%B3%D0%B8/",
+                    "legIntClaim": "https://gemius.com/documents/57/20240812_LIC_Gemius.pdf"
+                },
+                {
+                    "langId": "sk",
+                    "privacy": "https://gemius.com/sk/ochrana-osobnych-udajov/",
+                    "legIntClaim": "https://gemius.com/documents/57/20240812_LIC_Gemius.pdf"
+                },
+                {
+                    "langId": "hr",
+                    "privacy": "https://gemius.com/hr/politika-privatnosti/",
+                    "legIntClaim": "https://gemius.com/documents/57/20240812_LIC_Gemius.pdf"
                 }
             ],
             "usesNonCookieAccess": true,
@@ -12789,7 +12835,7 @@
                 10,
                 11
             ],
-            "deviceStorageDisclosureUrl": "https://gemius.com/media/documents/Gemius_SA_Vendor_Device_Storage.json"
+            "deviceStorageDisclosureUrl": "https://gemius.com/Gemius_SA_Vendor_Device_Storage.json"
         },
         "329": {
             "id": 329,
@@ -19257,6 +19303,7 @@
                 3,
                 4,
                 7,
+                9,
                 10
             ],
             "legIntPurposes": [],
@@ -19266,8 +19313,12 @@
                 2,
                 3
             ],
-            "features": [],
-            "specialFeatures": [],
+            "features": [
+                1
+            ],
+            "specialFeatures": [
+                1
+            ],
             "cookieMaxAgeSeconds": null,
             "usesCookies": false,
             "cookieRefresh": false,
@@ -19280,19 +19331,21 @@
             ],
             "usesNonCookieAccess": true,
             "dataRetention": {
-                "stdRetention": 31,
+                "stdRetention": 365,
                 "purposes": {
-                    "3": 365,
-                    "4": 365
+                    "7": 31
                 },
-                "specialPurposes": []
+                "specialPurposes": {
+                    "1": 31
+                }
             },
             "dataDeclaration": [
                 1,
                 2,
                 3,
+                6,
                 8,
-                9,
+                10,
                 11
             ],
             "deviceStorageDisclosureUrl": "https://www.localsensor.com/legal/tcf/vendor-disclosure-tcf-22.json"
@@ -25588,6 +25641,7 @@
             "id": 778,
             "name": "Discover-Tech ltd",
             "purposes": [
+                1,
                 2,
                 3,
                 4,
@@ -25595,30 +25649,42 @@
             ],
             "legIntPurposes": [],
             "flexiblePurposes": [],
-            "specialPurposes": [],
+            "specialPurposes": [
+                1,
+                2
+            ],
             "features": [
                 3
             ],
             "specialFeatures": [],
-            "cookieMaxAgeSeconds": null,
-            "usesCookies": false,
-            "cookieRefresh": false,
+            "deletedDate": "2026-10-08T13:57:02.096Z",
+            "cookieMaxAgeSeconds": 31536000,
+            "usesCookies": true,
+            "cookieRefresh": true,
             "urls": [
                 {
                     "langId": "en",
                     "privacy": "https://www.discover-tech.io/privacy-policy",
-                    "legIntClaim": ""
+                    "legIntClaim": "https://www.discover-tech.io/legitimate"
                 }
             ],
-            "usesNonCookieAccess": false,
+            "usesNonCookieAccess": true,
             "dataRetention": {
                 "stdRetention": 93,
-                "purposes": [],
+                "purposes": {
+                    "3": 365,
+                    "4": 365
+                },
                 "specialPurposes": []
             },
             "dataDeclaration": [
                 1,
-                3
+                2,
+                3,
+                6,
+                8,
+                10,
+                11
             ],
             "deviceStorageDisclosureUrl": "https://info.discover-tech.io/disclosure.json"
         },
@@ -41436,7 +41502,7 @@
             "overflow": {
                 "httpGetLimit": 128
             },
-            "cookieMaxAgeSeconds": 31556952,
+            "cookieMaxAgeSeconds": 62985600,
             "usesCookies": true,
             "cookieRefresh": true,
             "urls": [
@@ -42111,15 +42177,10 @@
                 4,
                 7
             ],
-            "legIntPurposes": [
-                8,
-                9,
-                11
-            ],
-            "flexiblePurposes": [
-                9
-            ],
+            "legIntPurposes": [],
+            "flexiblePurposes": [],
             "specialPurposes": [
+                1,
                 2,
                 3
             ],
@@ -42127,7 +42188,9 @@
                 1,
                 3
             ],
-            "specialFeatures": [],
+            "specialFeatures": [
+                1
+            ],
             "cookieMaxAgeSeconds": 12090579,
             "usesCookies": true,
             "cookieRefresh": true,
@@ -42143,8 +42206,7 @@
                 "stdRetention": 1825,
                 "purposes": {
                     "3": 1812,
-                    "4": 1824,
-                    "11": 1797
+                    "4": 1824
                 },
                 "specialPurposes": {
                     "3": 0
@@ -50116,6 +50178,7 @@
             "name": "Copper6 LTD",
             "purposes": [
                 1,
+                2,
                 3,
                 4,
                 5,
@@ -56606,7 +56669,8 @@
                 3
             ],
             "specialFeatures": [
-                1
+                1,
+                2
             ],
             "overflow": {
                 "httpGetLimit": 128
@@ -62504,7 +62568,7 @@
             "specialFeatures": [],
             "cookieMaxAgeSeconds": 63072000,
             "usesCookies": true,
-            "cookieRefresh": false,
+            "cookieRefresh": true,
             "urls": [
                 {
                     "langId": "en",
@@ -63303,7 +63367,7 @@
             ],
             "cookieMaxAgeSeconds": 1209600,
             "usesCookies": true,
-            "cookieRefresh": false,
+            "cookieRefresh": true,
             "urls": [
                 {
                     "langId": "en",
@@ -63687,7 +63751,7 @@
                 10,
                 11
             ],
-            "deviceStorageDisclosureUrl": "https://thechannelstore.tv/sellers.json"
+            "deviceStorageDisclosureUrl": "https://ads.thechannelstore.tv/deviceStorage.json"
         },
         "1627": {
             "id": 1627,
@@ -63844,7 +63908,7 @@
                 3
             ],
             "specialFeatures": [],
-            "cookieMaxAgeSeconds": 525600,
+            "cookieMaxAgeSeconds": 31536000,
             "usesCookies": true,
             "cookieRefresh": true,
             "urls": [
@@ -64387,7 +64451,7 @@
                     "legIntClaim": "https://www.genleads.com/privacy#european"
                 }
             ],
-            "usesNonCookieAccess": false,
+            "usesNonCookieAccess": true,
             "dataRetention": {
                 "stdRetention": 365,
                 "purposes": [],
@@ -64629,26 +64693,24 @@
                 3,
                 4,
                 7,
-                9,
-                10
+                9
             ],
             "legIntPurposes": [],
             "flexiblePurposes": [],
-            "specialPurposes": [],
-            "features": [
+            "specialPurposes": [
                 1,
-                2,
-                3
+                2
             ],
+            "features": [],
             "specialFeatures": [],
-            "cookieMaxAgeSeconds": 180,
+            "cookieMaxAgeSeconds": 15552000,
             "usesCookies": true,
-            "cookieRefresh": false,
+            "cookieRefresh": true,
             "urls": [
                 {
                     "langId": "en",
                     "privacy": "https://acheron-ai.tech/privacy.html",
-                    "legIntClaim": ""
+                    "legIntClaim": "https://acheron-ai.tech/privacy.html#legitimate-interest-claim"
                 }
             ],
             "usesNonCookieAccess": false,
@@ -64664,9 +64726,11 @@
             "dataDeclaration": [
                 1,
                 2,
-                3,
                 4,
+                6,
+                7,
                 8,
+                10,
                 11
             ],
             "deviceStorageDisclosureUrl": "https://acheron-ai.tech/privacy.json"
@@ -64879,7 +64943,7 @@
         },
         "1649": {
             "id": 1649,
-            "name": "ADN Topco SAS",
+            "name": "ADN Topco (Helix)",
             "purposes": [
                 1,
                 2,
@@ -65071,9 +65135,9 @@
                 1
             ],
             "specialFeatures": [],
-            "cookieMaxAgeSeconds": 87600,
-            "usesCookies": true,
-            "cookieRefresh": true,
+            "cookieMaxAgeSeconds": null,
+            "usesCookies": false,
+            "cookieRefresh": false,
             "urls": [
                 {
                     "langId": "en",
@@ -65100,7 +65164,7 @@
                 8,
                 11
             ],
-            "deviceStorageDisclosureUrl": "https://adbridg.com/sellers.json"
+            "deviceStorageDisclosureUrl": "https://www.adbridg.com/_functions/deviceStorage/deviceStorage.json"
         },
         "1653": {
             "id": 1653,
@@ -65203,6 +65267,145 @@
                 11
             ],
             "deviceStorageDisclosureUrl": "https://a.fluxtech.ai/vendor-disclosure-flux-bidder.json"
+        },
+        "1655": {
+            "id": 1655,
+            "name": "ScientiaMobile, Inc.",
+            "purposes": [
+                1
+            ],
+            "legIntPurposes": [
+                7
+            ],
+            "flexiblePurposes": [],
+            "specialPurposes": [],
+            "features": [],
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": null,
+            "usesCookies": false,
+            "cookieRefresh": false,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://scientiamobile.com/wurflrtd-privacy-policy/",
+                    "legIntClaim": "https://scientiamobile.com/wurflrtd-legitimate-interest-assessment-lia/"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "purposes": {
+                    "7": 56
+                },
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2
+            ],
+            "deviceStorageDisclosureUrl": "https://web.wurfl.io/device-storage-disclosure.json"
+        },
+        "1656": {
+            "id": 1656,
+            "name": "Advanced Digital Adtech Ltd",
+            "purposes": [
+                1,
+                3,
+                4
+            ],
+            "legIntPurposes": [
+                2,
+                7,
+                9,
+                10
+            ],
+            "flexiblePurposes": [
+                2,
+                7,
+                9
+            ],
+            "specialPurposes": [
+                1,
+                2,
+                3
+            ],
+            "features": [
+                1,
+                2,
+                3
+            ],
+            "specialFeatures": [
+                1
+            ],
+            "cookieMaxAgeSeconds": 34560000,
+            "usesCookies": true,
+            "cookieRefresh": true,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://udi.ad-vanced.media/privacy-policy",
+                    "legIntClaim": "https://udi.ad-vanced.media/legitimate-interest"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 395,
+                "purposes": [],
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://h5.ad-vanced.media/h5/ad0a0000-0000-4000-8000-000000000001/7cf00000-0000-4000-8000-000000000001/deviceStorage.json"
+        },
+        "1657": {
+            "id": 1657,
+            "name": "Volasim Limited",
+            "purposes": [
+                1,
+                2,
+                7
+            ],
+            "legIntPurposes": [],
+            "flexiblePurposes": [],
+            "specialPurposes": [
+                1
+            ],
+            "features": [
+                3
+            ],
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": 0,
+            "usesCookies": true,
+            "cookieRefresh": false,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://www.volasim.com/privacy-policy",
+                    "legIntClaim": "https://www.volasim.com/legitimate-intrest"
+                }
+            ],
+            "usesNonCookieAccess": false,
+            "dataRetention": {
+                "stdRetention": 93,
+                "purposes": [],
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                3
+            ],
+            "deviceStorageDisclosureUrl": "https://info.volasim.com/disclosure.json"
         }
     }
 }
