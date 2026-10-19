@@ -1,8 +1,8 @@
 {
     "gvlSpecificationVersion": 3,
-    "vendorListVersion": 180,
+    "vendorListVersion": 181,
     "tcfPolicyVersion": 5,
-    "lastUpdated": "2026-10-08T16:00:18Z",
+    "lastUpdated": "2026-10-15T16:00:19Z",
     "purposes": {
         "1": {
             "id": 1,
@@ -5433,7 +5433,7 @@
             "specialFeatures": [
                 1
             ],
-            "cookieMaxAgeSeconds": 31540000,
+            "cookieMaxAgeSeconds": 34128000,
             "usesCookies": true,
             "cookieRefresh": true,
             "urls": [
@@ -7359,6 +7359,7 @@
             ],
             "legIntPurposes": [],
             "flexiblePurposes": [
+                2,
                 7,
                 9,
                 10
@@ -13322,158 +13323,163 @@
             "urls": [
                 {
                     "langId": "en",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=en",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=en#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy#gdpr"
                 },
                 {
                     "langId": "ar",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=ar",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=ar#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=ar",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=ar#gdpr"
                 },
                 {
                     "langId": "bg",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=bg",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=bg#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=bg",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=bg#gdpr"
                 },
                 {
                     "langId": "bs",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=bs",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=bs#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=bs",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=bs#gdpr"
                 },
                 {
                     "langId": "ca",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=ca",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=ca#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=ca",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=ca#gdpr"
                 },
                 {
                     "langId": "cs",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=cs",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=cs#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=cs",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=cs#gdpr"
                 },
                 {
                     "langId": "da",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=da",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=da#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=da",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=da#gdpr"
                 },
                 {
                     "langId": "de",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=de",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=de#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=de",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=de#gdpr"
                 },
                 {
                     "langId": "el",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=el",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=el#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=el",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=el#gdpr"
                 },
                 {
                     "langId": "es",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=es",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=es#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=es",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=es#gdpr"
                 },
                 {
                     "langId": "et",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=et",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=et#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=et",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=et#gdpr"
                 },
                 {
                     "langId": "fi",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=fi",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=fi#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=fi",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=fi#gdpr"
                 },
                 {
                     "langId": "fr",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=fr",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=fr#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=fr",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=fr#gdpr"
                 },
                 {
                     "langId": "hr",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=hr",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=hr#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=hr",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=hr#gdpr"
                 },
                 {
                     "langId": "hu",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=hu",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=hu#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=hu",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=hu#gdpr"
                 },
                 {
                     "langId": "it",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=it",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=it#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=it",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=it#gdpr"
                 },
                 {
                     "langId": "ja",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=ja",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=ja#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=ja",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=ja#gdpr"
                 },
                 {
                     "langId": "lt",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=lt",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=lt#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=lt",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=lt#gdpr"
                 },
                 {
                     "langId": "lv",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=lv",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=lv#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=lv",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=lv#gdpr"
                 },
                 {
                     "langId": "nl",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=nl",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=nl#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=nl",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=nl#gdpr"
                 },
                 {
                     "langId": "no",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=no",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=no#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=no",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=no#gdpr"
                 },
                 {
                     "langId": "pl",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=pl",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=pl#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=pl",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=pl#gdpr"
                 },
                 {
                     "langId": "pt",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=pt",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=pt#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=pt",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=pt#gdpr"
                 },
                 {
                     "langId": "ro",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=ro",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=ro#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=ro",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=ro#gdpr"
                 },
                 {
                     "langId": "ru",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=ru",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=ru#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=ru",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=ru#gdpr"
                 },
                 {
                     "langId": "sk",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=sk",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=sk#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=sk",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=sk#gdpr"
                 },
                 {
                     "langId": "sl",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=sl",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=sl#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=sl",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=sl#gdpr"
                 },
                 {
                     "langId": "sv",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=sv",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=sv#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=sv",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=sv#gdpr"
                 },
                 {
                     "langId": "tr",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=tr",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=tr#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=tr",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=tr#gdpr"
                 },
                 {
                     "langId": "zh",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=zh",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=zh#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=zh-CN",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=zh-CN#gdpr"
                 },
                 {
-                    "langId": "sr - cyrl",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=sr",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=sr#sec-11"
+                    "langId": "sr-latn",
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=sr",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=sr#gdpr"
+                },
+                {
+                    "langId": "uk",
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=uk",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=uk#gdpr"
                 }
             ],
             "usesNonCookieAccess": false,
@@ -13547,158 +13553,163 @@
             "urls": [
                 {
                     "langId": "en",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=en",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=en#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy#gdpr"
                 },
                 {
                     "langId": "ar",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=ar",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=ar#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=ar",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=ar#gdpr"
                 },
                 {
                     "langId": "bg",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=bg",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=bg#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=bg",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=bg#gdpr"
                 },
                 {
                     "langId": "bs",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=bs",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=bs#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=bs",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=bs#gdpr"
                 },
                 {
                     "langId": "ca",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=ca",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=ca#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=ca",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=ca#gdpr"
                 },
                 {
                     "langId": "cs",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=cs",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=cs#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=cs",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=cs#gdpr"
                 },
                 {
                     "langId": "da",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=da",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=da#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=da",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=da#gdpr1"
                 },
                 {
                     "langId": "de",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=de",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=de#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=de",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=de#gdpr"
                 },
                 {
                     "langId": "el",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=el",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=el#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=el",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=el#gdpr"
                 },
                 {
                     "langId": "es",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=es",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=es#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=es",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=es#gdpr"
                 },
                 {
                     "langId": "et",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=et",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=et#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=et",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=et#gdpr"
                 },
                 {
                     "langId": "fi",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=fi",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=fi#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=fi",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=fi#gdpr"
                 },
                 {
                     "langId": "fr",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=fr",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=fr#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=fr",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=fr#gdpr"
                 },
                 {
                     "langId": "hu",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=hu",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=hu#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=hu",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=hu#gdpr"
                 },
                 {
                     "langId": "it",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=it",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=it#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=it",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=it#gdpr"
                 },
                 {
                     "langId": "ja",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=ja",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=ja#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=ja",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=ja#gdpr"
                 },
                 {
                     "langId": "lt",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=lt",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=lt#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=lt",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=lt#gdpr"
                 },
                 {
                     "langId": "lv",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=lv",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=lv#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=lv",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=lv#gdpr"
                 },
                 {
                     "langId": "nl",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=nl",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=nl#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=nl",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=nl#gdpr"
                 },
                 {
                     "langId": "no",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=no",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=no#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=no",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=no#gdpr"
                 },
                 {
                     "langId": "pl",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=pl",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=pl#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=pl",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=pl#gdpr"
                 },
                 {
                     "langId": "pt",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=pt",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=pt#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=pt",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=pt#gdpr"
                 },
                 {
                     "langId": "ro",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=ro",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=ro#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=ro",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=ro#gdpr"
                 },
                 {
-                    "langId": "sr - cyrl",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=sr",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=sr#sec-11"
+                    "langId": "sr-latn",
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=sr",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=sr#gdpr"
                 },
                 {
                     "langId": "ru",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=ru",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=ru#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=ru",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=ru#gdpr"
                 },
                 {
                     "langId": "sk",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=sk",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=sk#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=sk",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=sk#gdpr"
                 },
                 {
                     "langId": "sl",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=sl",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=sl#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=sl",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=sl#gdpr"
                 },
                 {
                     "langId": "sv",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=sv",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=sv#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=sv",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=sv#gdpr"
                 },
                 {
                     "langId": "tr",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=tr",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=tr#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=tr",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=tr#gdpr"
                 },
                 {
                     "langId": "zh",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=zh",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=zh#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=zh-CN",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=zh-CN#gdpr"
                 },
                 {
                     "langId": "hr",
-                    "privacy": "https://samba.tv/users/privacy-policy?lang=hr",
-                    "legIntClaim": "https://samba.tv/users/privacy-policy?lang=hr#sec-11"
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=hr",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=hr#gdpr"
+                },
+                {
+                    "langId": "uk",
+                    "privacy": "https://samba.com/privacy-center/privacy-policy?lang=uk",
+                    "legIntClaim": "https://samba.com/privacy-center/privacy-policy?lang=uk#gdpr"
                 }
             ],
             "usesNonCookieAccess": false,
@@ -17842,6 +17853,7 @@
             "id": 530,
             "name": "Azira LLC",
             "purposes": [
+                1,
                 2,
                 3,
                 4,
@@ -17860,7 +17872,8 @@
             ],
             "specialPurposes": [
                 1,
-                2
+                2,
+                3
             ],
             "features": [
                 1,
@@ -17872,8 +17885,8 @@
             "overflow": {
                 "httpGetLimit": 128
             },
-            "cookieMaxAgeSeconds": null,
-            "usesCookies": false,
+            "cookieMaxAgeSeconds": 33696000,
+            "usesCookies": true,
             "cookieRefresh": false,
             "urls": [
                 {
@@ -17882,7 +17895,7 @@
                     "legIntClaim": "https://azira.com/fr/privacy-policy/#services-policy"
                 }
             ],
-            "usesNonCookieAccess": false,
+            "usesNonCookieAccess": true,
             "dataRetention": {
                 "stdRetention": 390,
                 "purposes": [],
@@ -18969,8 +18982,8 @@
             "urls": [
                 {
                     "langId": "fr",
-                    "privacy": "http://viewpay.tv/mentions-legales/",
-                    "legIntClaim": "http://viewpay.tv/mentions-legales/"
+                    "privacy": "https://viewpay.tv/mentions-legales/",
+                    "legIntClaim": "https://viewpay.tv/mentions-legales/"
                 }
             ],
             "usesNonCookieAccess": true,
@@ -18983,7 +18996,12 @@
             },
             "dataDeclaration": [
                 1,
-                2
+                2,
+                3,
+                6,
+                7,
+                8,
+                11
             ],
             "deviceStorageDisclosureUrl": "https://viewpay.tv/file.json"
         },
@@ -19481,12 +19499,11 @@
         "598": {
             "id": 598,
             "name": "AllMediaDesk GmbH",
-            "purposes": [
-                1
-            ],
+            "purposes": [],
             "legIntPurposes": [
                 2,
                 7,
+                8,
                 9
             ],
             "flexiblePurposes": [],
@@ -19495,9 +19512,7 @@
                 2
             ],
             "features": [],
-            "specialFeatures": [
-                1
-            ],
+            "specialFeatures": [],
             "cookieMaxAgeSeconds": null,
             "usesCookies": false,
             "cookieRefresh": false,
@@ -19508,14 +19523,18 @@
                     "legIntClaim": "https://www.allmediadesk.com/en/legal-information/"
                 }
             ],
-            "usesNonCookieAccess": true,
+            "usesNonCookieAccess": false,
             "dataRetention": {
-                "stdRetention": 0,
-                "purposes": [],
+                "stdRetention": 4320,
+                "purposes": {
+                    "2": 0,
+                    "8": 30
+                },
                 "specialPurposes": []
             },
             "dataDeclaration": [
-                1
+                1,
+                2
             ],
             "deviceStorageDisclosureUrl": "https://www.allmediadesk.com/deviceStorageDisclosureURL.json"
         },
@@ -28627,6 +28646,7 @@
             ],
             "features": [],
             "specialFeatures": [],
+            "deletedDate": "2026-10-09T12:03:02.745Z",
             "cookieMaxAgeSeconds": null,
             "usesCookies": false,
             "cookieRefresh": false,
@@ -31604,7 +31624,7 @@
         },
         "930": {
             "id": 930,
-            "name": "IQM CORPORATION",
+            "name": "IQM Advertising Corporation",
             "purposes": [
                 1,
                 2,
@@ -31625,7 +31645,7 @@
             "specialFeatures": [
                 1
             ],
-            "cookieMaxAgeSeconds": 1296000,
+            "cookieMaxAgeSeconds": 157680000,
             "usesCookies": true,
             "cookieRefresh": true,
             "urls": [
@@ -44310,6 +44330,7 @@
             ],
             "features": [],
             "specialFeatures": [],
+            "deletedDate": "2026-10-13T07:30:15.528Z",
             "cookieMaxAgeSeconds": 31536000,
             "usesCookies": true,
             "cookieRefresh": true,
@@ -52815,17 +52836,20 @@
                 1
             ],
             "legIntPurposes": [
+                7,
                 8,
                 9,
                 10
             ],
             "flexiblePurposes": [
+                7,
                 8,
                 9,
                 10
             ],
             "specialPurposes": [
                 1,
+                2,
                 3
             ],
             "features": [],
@@ -56359,6 +56383,7 @@
             "overflow": {
                 "httpGetLimit": 32
             },
+            "deletedDate": "2026-10-12T11:55:17.409Z",
             "cookieMaxAgeSeconds": 31536000,
             "usesCookies": true,
             "cookieRefresh": false,
@@ -59495,13 +59520,16 @@
         "1538": {
             "id": 1538,
             "name": "Coresibo LTD (DBA Tredio)",
-            "purposes": [],
+            "purposes": [
+                1,
+                2,
+                3,
+                4
+            ],
             "legIntPurposes": [],
             "flexiblePurposes": [],
             "specialPurposes": [
-                1,
-                2,
-                3
+                1
             ],
             "features": [
                 3
@@ -59509,12 +59537,9 @@
             "specialFeatures": [
                 1
             ],
-            "overflow": {
-                "httpGetLimit": 32
-            },
-            "cookieMaxAgeSeconds": null,
-            "usesCookies": false,
-            "cookieRefresh": false,
+            "cookieMaxAgeSeconds": 1209600,
+            "usesCookies": true,
+            "cookieRefresh": true,
             "urls": [
                 {
                     "langId": "en",
@@ -59524,12 +59549,14 @@
             ],
             "usesNonCookieAccess": false,
             "dataRetention": {
-                "stdRetention": 0,
+                "stdRetention": 14,
                 "purposes": [],
                 "specialPurposes": []
             },
             "dataDeclaration": [
-                1
+                1,
+                2,
+                8
             ],
             "deviceStorageDisclosureUrl": "https://tredio.io/disc.json"
         },
@@ -59880,7 +59907,7 @@
             "specialFeatures": [],
             "cookieMaxAgeSeconds": 15552000,
             "usesCookies": true,
-            "cookieRefresh": false,
+            "cookieRefresh": true,
             "urls": [
                 {
                     "langId": "fr",
@@ -60959,6 +60986,44 @@
                 2
             ],
             "deviceStorageDisclosureUrl": "https://ads.bannerwise.io/vendor.json"
+        },
+        "1569": {
+            "id": 1569,
+            "name": "Contxtful Technologies Inc. DBA Receptiv",
+            "purposes": [
+                1,
+                3,
+                10
+            ],
+            "legIntPurposes": [],
+            "flexiblePurposes": [],
+            "specialPurposes": [],
+            "features": [],
+            "specialFeatures": [],
+            "deletedDate": "2026-04-28T08:36:11.984Z",
+            "cookieMaxAgeSeconds": 2592000,
+            "usesCookies": true,
+            "cookieRefresh": true,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://www.getreceptiv.com/privacy-policy/",
+                    "legIntClaim": ""
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 30,
+                "purposes": [],
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                8,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://www.getreceptiv.com/tcf.json"
         },
         "1570": {
             "id": 1570,
@@ -63772,8 +63837,7 @@
             ],
             "features": [
                 1,
-                2,
-                3
+                2
             ],
             "specialFeatures": [
                 1
@@ -63806,7 +63870,6 @@
                 1,
                 2,
                 3,
-                4,
                 5,
                 6,
                 8,
@@ -63814,7 +63877,7 @@
                 10,
                 11
             ],
-            "deviceStorageDisclosureUrl": "https://mg645.github.io/IAB/file.json"
+            "deviceStorageDisclosureUrl": "https://iab.fivecellgroup.com/file.json"
         },
         "1628": {
             "id": 1628,
@@ -65110,7 +65173,7 @@
                 10,
                 11
             ],
-            "deviceStorageDisclosureUrl": "https://terrabite.ai/.well-known/devicestorage.json"
+            "deviceStorageDisclosureUrl": "https://terrabite-vendor.netlify.app/devicestorage.json"
         },
         "1652": {
             "id": 1652,
@@ -65406,6 +65469,122 @@
                 3
             ],
             "deviceStorageDisclosureUrl": "https://info.volasim.com/disclosure.json"
+        },
+        "1658": {
+            "id": 1658,
+            "name": "Path IQ Pte. Ltd",
+            "purposes": [
+                3,
+                4,
+                7,
+                9,
+                10
+            ],
+            "legIntPurposes": [],
+            "flexiblePurposes": [
+                7,
+                9,
+                10
+            ],
+            "specialPurposes": [
+                1
+            ],
+            "features": [
+                1,
+                2,
+                3
+            ],
+            "specialFeatures": [
+                1
+            ],
+            "cookieMaxAgeSeconds": null,
+            "usesCookies": false,
+            "cookieRefresh": false,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://path-iq.ai/privacy-policy/",
+                    "legIntClaim": "https://path-iq.ai/privacy-policy/"
+                }
+            ],
+            "usesNonCookieAccess": false,
+            "dataRetention": {
+                "stdRetention": 90,
+                "purposes": [],
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                8,
+                9,
+                10,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://path-iq.ai/tcf/deviceStorage.json"
+        },
+        "1659": {
+            "id": 1659,
+            "name": "madSense US LLC",
+            "purposes": [
+                1,
+                3,
+                4
+            ],
+            "legIntPurposes": [
+                2,
+                7,
+                9
+            ],
+            "flexiblePurposes": [
+                2,
+                7,
+                9
+            ],
+            "specialPurposes": [
+                1,
+                2
+            ],
+            "features": [
+                1,
+                3
+            ],
+            "specialFeatures": [],
+            "overflow": {
+                "httpGetLimit": 128
+            },
+            "cookieMaxAgeSeconds": null,
+            "usesCookies": false,
+            "cookieRefresh": false,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://madsense.com/services-privacy-policy",
+                    "legIntClaim": "https://madsense.com/services-privacy-policy"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 365,
+                "purposes": [],
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                8,
+                10,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://madsense.com/devicestorage.json"
         }
     }
 }
