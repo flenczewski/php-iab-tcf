@@ -1,8 +1,8 @@
 {
     "gvlSpecificationVersion": 3,
-    "vendorListVersion": 182,
+    "vendorListVersion": 183,
     "tcfPolicyVersion": 5,
-    "lastUpdated": "2026-10-22T16:00:18Z",
+    "lastUpdated": "2026-10-29T16:00:18Z",
     "purposes": {
         "1": {
             "id": 1,
@@ -2687,7 +2687,7 @@
                 3
             ],
             "specialFeatures": [],
-            "cookieMaxAgeSeconds": 31556926,
+            "cookieMaxAgeSeconds": 31536000,
             "usesCookies": true,
             "cookieRefresh": true,
             "urls": [
@@ -10723,22 +10723,30 @@
             "purposes": [
                 1,
                 3,
-                4
+                4,
+                5,
+                6
             ],
             "legIntPurposes": [
                 2,
                 7,
+                8,
                 9,
-                10
+                10,
+                11
             ],
-            "flexiblePurposes": [],
+            "flexiblePurposes": [
+                11
+            ],
             "specialPurposes": [
                 1,
                 2,
                 3
             ],
             "features": [
-                2
+                1,
+                2,
+                3
             ],
             "specialFeatures": [],
             "cookieMaxAgeSeconds": 31536000,
@@ -10747,20 +10755,17 @@
             "urls": [
                 {
                     "langId": "en",
-                    "privacy": "https://www.nativo.com/interest-based-ads",
-                    "legIntClaim": "https://www.nativo.com/interest-based-ads#how-we-use-your-personal-data-and-why"
+                    "privacy": "https://ads.life360.com/legal/interest-based-ads",
+                    "legIntClaim": "https://ads.life360.com/legal/interest-based-ads#disclosures-for-EEA-UK-Switzerland-users"
                 }
             ],
             "usesNonCookieAccess": true,
             "dataRetention": {
-                "stdRetention": 730,
+                "stdRetention": 45,
                 "purposes": {
-                    "2": 0,
-                    "3": 45,
-                    "4": 45
+                    "2": 0
                 },
                 "specialPurposes": {
-                    "2": 0,
                     "3": 1826
                 }
             },
@@ -10770,6 +10775,7 @@
                 3,
                 5,
                 6,
+                7,
                 8,
                 10,
                 11
@@ -16172,24 +16178,10 @@
             "name": "B2B Media Group GmbH",
             "purposes": [
                 1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11
+                2
             ],
             "legIntPurposes": [],
-            "flexiblePurposes": [
-                2,
-                7,
-                9,
-                10
-            ],
+            "flexiblePurposes": [],
             "specialPurposes": [
                 1,
                 2,
@@ -36785,10 +36777,13 @@
             "legIntPurposes": [
                 2,
                 7,
-                8,
                 10
             ],
-            "flexiblePurposes": [],
+            "flexiblePurposes": [
+                2,
+                7,
+                10
+            ],
             "specialPurposes": [
                 1,
                 2
@@ -36812,7 +36807,9 @@
                 "specialPurposes": []
             },
             "dataDeclaration": [
-                1
+                1,
+                2,
+                3
             ],
             "deviceStorageDisclosureUrl": "https://storage.googleapis.com/tcfv2/info.json"
         },
@@ -38104,56 +38101,41 @@
             "id": 1101,
             "name": "PIA Advertising GmbH",
             "purposes": [
-                1,
-                2,
                 3,
                 4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11
+                7
             ],
             "legIntPurposes": [],
             "flexiblePurposes": [],
             "specialPurposes": [],
             "features": [
-                1,
-                2,
-                3
-            ],
-            "specialFeatures": [
                 1
             ],
-            "cookieMaxAgeSeconds": 7776000,
-            "usesCookies": true,
-            "cookieRefresh": true,
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": null,
+            "usesCookies": false,
+            "cookieRefresh": false,
             "urls": [
                 {
                     "langId": "en",
-                    "privacy": "https://pia-advertising.com/privacy-policy/"
+                    "privacy": "https://pia-advertising.com/privacy-policy/",
+                    "legIntClaim": " "
                 }
             ],
             "usesNonCookieAccess": false,
             "dataRetention": {
                 "stdRetention": 365,
-                "purposes": [],
+                "purposes": {
+                    "7": 30
+                },
                 "specialPurposes": []
             },
             "dataDeclaration": [
                 1,
                 2,
-                3,
-                4,
-                5,
                 6,
-                7,
                 8,
-                9,
-                10,
-                11
+                10
             ],
             "deviceStorageDisclosureUrl": "https://imagesrv.adition.com/banners/268/xml/cm/ts/tcf/deviceStorage.json"
         },
@@ -40036,9 +40018,9 @@
             "overflow": {
                 "httpGetLimit": 128
             },
-            "cookieMaxAgeSeconds": null,
-            "usesCookies": false,
-            "cookieRefresh": false,
+            "cookieMaxAgeSeconds": 7776000,
+            "usesCookies": true,
+            "cookieRefresh": true,
             "urls": [
                 {
                     "langId": "en",
@@ -40053,7 +40035,9 @@
                 "specialPurposes": []
             },
             "dataDeclaration": [
-                1
+                1,
+                3,
+                8
             ],
             "deviceStorageDisclosureUrl": "https://magav.videowalldirect.com/iab/videowalldirectiab.json"
         },
@@ -57197,6 +57181,7 @@
                 1,
                 2
             ],
+            "deletedDate": "2026-10-27T11:16:29.094Z",
             "cookieMaxAgeSeconds": 63071998,
             "usesCookies": true,
             "cookieRefresh": true,
@@ -61612,13 +61597,13 @@
             "urls": [
                 {
                     "langId": "de",
-                    "privacy": "https://datenschutzerklaerung.neo.bet",
-                    "legIntClaim": "https://datenschutzerklaerung.neo.bet"
+                    "privacy": "https://media.neo.bet/documents/datenschutzerklaerung.html",
+                    "legIntClaim": "https://media.neo.bet/documents/datenschutzerklaerung.html"
                 },
                 {
                     "langId": "en",
-                    "privacy": "https://privacypolicy.neo.bet",
-                    "legIntClaim": "https://privacypolicy.neo.bet"
+                    "privacy": "https://media.neo.bet/documents/privacypolicy.html",
+                    "legIntClaim": "https://media.neo.bet/documents/privacypolicy.html"
                 }
             ],
             "usesNonCookieAccess": false,
@@ -61679,7 +61664,7 @@
         },
         "1583": {
             "id": 1583,
-            "name": "AppQwest SAS",
+            "name": "Metyks",
             "purposes": [],
             "legIntPurposes": [
                 2,
@@ -64018,7 +64003,7 @@
         },
         "1630": {
             "id": 1630,
-            "name": "THEBRIGADE FRANCE SAS",
+            "name": "ThankYou Analytics",
             "purposes": [
                 1,
                 7
@@ -65139,8 +65124,10 @@
                 2,
                 3,
                 4,
+                5,
                 7,
-                9
+                9,
+                10
             ],
             "legIntPurposes": [],
             "flexiblePurposes": [],
@@ -65169,7 +65156,7 @@
             ],
             "usesNonCookieAccess": true,
             "dataRetention": {
-                "stdRetention": 395,
+                "stdRetention": 730,
                 "purposes": [],
                 "specialPurposes": {
                     "2": 0,
@@ -65342,7 +65329,7 @@
                 10,
                 11
             ],
-            "deviceStorageDisclosureUrl": "https://a.fluxtech.ai/vendor-disclosure-flux-bidder.json"
+            "deviceStorageDisclosureUrl": "https://a.aivertise.com/vendor-disclosure-aivertise-bidder.json"
         },
         "1655": {
             "id": 1655,
@@ -65449,6 +65436,8 @@
             "purposes": [
                 1,
                 2,
+                3,
+                4,
                 7
             ],
             "legIntPurposes": [],
@@ -65460,6 +65449,7 @@
                 3
             ],
             "specialFeatures": [],
+            "deletedDate": "2026-10-28T14:29:43.892Z",
             "cookieMaxAgeSeconds": 0,
             "usesCookies": true,
             "cookieRefresh": false,
@@ -65759,6 +65749,72 @@
                 11
             ],
             "deviceStorageDisclosureUrl": "https://cdn.lemrock.com/tcf/deviceStorage.json"
+        },
+        "1663": {
+            "id": 1663,
+            "name": "PAISTRY TECHNOLOGIES GmbH",
+            "purposes": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11
+            ],
+            "legIntPurposes": [],
+            "flexiblePurposes": [],
+            "specialPurposes": [
+                1,
+                2,
+                3
+            ],
+            "features": [
+                1,
+                2,
+                3
+            ],
+            "specialFeatures": [
+                2
+            ],
+            "cookieMaxAgeSeconds": null,
+            "usesCookies": false,
+            "cookieRefresh": false,
+            "urls": [
+                {
+                    "langId": "de",
+                    "privacy": "https://paistry.tech/privacy/",
+                    "legIntClaim": "https://paistry.tech/legitimate-interest/"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 397,
+                "purposes": {
+                    "8": 30,
+                    "10": 90,
+                    "11": 30
+                },
+                "specialPurposes": {
+                    "1": 30,
+                    "2": 30
+                }
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                5,
+                6,
+                7,
+                8,
+                10,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://paistry.tech/.well-known/paistry-device-storage.json"
         }
     }
 }
