@@ -1,8 +1,8 @@
 {
     "gvlSpecificationVersion": 3,
-    "vendorListVersion": 183,
+    "vendorListVersion": 184,
     "tcfPolicyVersion": 5,
-    "lastUpdated": "2026-10-29T16:00:18Z",
+    "lastUpdated": "2026-11-05T16:00:18Z",
     "purposes": {
         "1": {
             "id": 1,
@@ -4378,7 +4378,7 @@
             "specialFeatures": [
                 1
             ],
-            "cookieMaxAgeSeconds": 157852800,
+            "cookieMaxAgeSeconds": 34560000,
             "usesCookies": true,
             "cookieRefresh": true,
             "urls": [
@@ -4395,9 +4395,19 @@
             ],
             "usesNonCookieAccess": true,
             "dataRetention": {
-                "stdRetention": 40,
-                "purposes": [],
-                "specialPurposes": []
+                "purposes": {
+                    "2": 62,
+                    "3": 30,
+                    "4": 30,
+                    "7": 62,
+                    "9": 30,
+                    "10": 20
+                },
+                "specialPurposes": {
+                    "1": 20,
+                    "2": 20,
+                    "3": 1825
+                }
             },
             "dataDeclaration": [
                 1,
@@ -9302,10 +9312,13 @@
             ],
             "usesNonCookieAccess": false,
             "dataRetention": {
-                "stdRetention": 31,
-                "purposes": [],
+                "stdRetention": 365,
+                "purposes": {
+                    "2": 31,
+                    "3": 31,
+                    "4": 31
+                },
                 "specialPurposes": {
-                    "1": 365,
                     "3": 1825
                 }
             },
@@ -16178,10 +16191,21 @@
             "name": "B2B Media Group GmbH",
             "purposes": [
                 1,
-                2
+                2,
+                3,
+                4,
+                5,
+                6,
+                9,
+                10,
+                11
             ],
             "legIntPurposes": [],
-            "flexiblePurposes": [],
+            "flexiblePurposes": [
+                2,
+                9,
+                10
+            ],
             "specialPurposes": [
                 1,
                 2,
@@ -19712,6 +19736,7 @@
                 1,
                 2
             ],
+            "deletedDate": "2026-11-04T14:24:23.416Z",
             "cookieMaxAgeSeconds": 31536000,
             "usesCookies": true,
             "cookieRefresh": true,
@@ -30539,6 +30564,7 @@
             ],
             "features": [],
             "specialFeatures": [],
+            "deletedDate": "2026-11-02T16:13:38.034Z",
             "cookieMaxAgeSeconds": null,
             "usesCookies": false,
             "cookieRefresh": false,
@@ -39997,7 +40023,6 @@
                 2,
                 3,
                 4,
-                5,
                 6,
                 7,
                 8,
@@ -40008,10 +40033,10 @@
             "legIntPurposes": [],
             "flexiblePurposes": [],
             "specialPurposes": [
-                1,
-                2
+                1
             ],
             "features": [
+                1,
                 3
             ],
             "specialFeatures": [],
@@ -57388,7 +57413,7 @@
         },
         "1498": {
             "id": 1498,
-            "name": "Brame AG",
+            "name": "KLEA Media GmbH",
             "purposes": [],
             "legIntPurposes": [
                 7
@@ -57406,12 +57431,12 @@
             "urls": [
                 {
                     "langId": "en",
-                    "privacy": "https://www.brame.io/privacy-policy",
+                    "privacy": "https://klea.media/en/datenschutz",
                     "legIntClaim": "https://www.brame.io/legitimate-interest"
                 },
                 {
                     "langId": "de",
-                    "privacy": "https://www.brame.io/de/datenschutzrichtlinie",
+                    "privacy": "https://klea.media/de/datenschutz",
                     "legIntClaim": "https://www.brame.io/de/legitimate-interest"
                 }
             ],
@@ -65755,18 +65780,137 @@
             "name": "PAISTRY TECHNOLOGIES GmbH",
             "purposes": [
                 1,
-                2,
                 3,
                 4,
                 5,
-                6,
+                6
+            ],
+            "legIntPurposes": [
+                2,
                 7,
                 8,
                 9,
                 10,
                 11
             ],
+            "flexiblePurposes": [],
+            "specialPurposes": [
+                1,
+                2,
+                3
+            ],
+            "features": [
+                1
+            ],
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": null,
+            "usesCookies": false,
+            "cookieRefresh": false,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://paistry.tech/privacy/",
+                    "legIntClaim": "https://paistry.tech/legitimate-interest/"
+                },
+                {
+                    "langId": "de",
+                    "privacy": "https://paistry.tech/datenschutz/",
+                    "legIntClaim": "https://paistry.tech/legitimate-interest/"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 395,
+                "purposes": {
+                    "2": 426,
+                    "7": 426,
+                    "8": 426,
+                    "9": 426,
+                    "11": 426
+                },
+                "specialPurposes": {
+                    "1": 426
+                }
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                3,
+                6,
+                7,
+                8,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://paistry.tech/.well-known/paistry-device-storage.json"
+        },
+        "1664": {
+            "id": 1664,
+            "name": "highfivve GmbH",
+            "purposes": [
+                1,
+                2,
+                7,
+                8,
+                10,
+                11
+            ],
             "legIntPurposes": [],
+            "flexiblePurposes": [],
+            "specialPurposes": [
+                1,
+                2,
+                3
+            ],
+            "features": [],
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": 7776000,
+            "usesCookies": true,
+            "cookieRefresh": true,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://highfivve.com/en/data-protection/",
+                    "legIntClaim": "https://highfivve.com/en/transparency/"
+                },
+                {
+                    "langId": "de",
+                    "privacy": "https://highfivve.com/datenschutzerklaerung/",
+                    "legIntClaim": "https://highfivve.com/en/transparency/"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 90,
+                "purposes": [],
+                "specialPurposes": {
+                    "1": 7,
+                    "2": 7,
+                    "3": 0
+                }
+            },
+            "dataDeclaration": [
+                1
+            ],
+            "deviceStorageDisclosureUrl": "https://cdn.h5v.eu/privacy/deviceStorage.json"
+        },
+        "1665": {
+            "id": 1665,
+            "name": "BMEG ME LLC",
+            "purposes": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                11
+            ],
+            "legIntPurposes": [
+                7,
+                8,
+                9,
+                10
+            ],
             "flexiblePurposes": [],
             "specialPurposes": [
                 1,
@@ -65779,42 +65923,84 @@
                 3
             ],
             "specialFeatures": [
-                2
+                1
             ],
-            "cookieMaxAgeSeconds": null,
-            "usesCookies": false,
+            "cookieMaxAgeSeconds": 31536000,
+            "usesCookies": true,
             "cookieRefresh": false,
             "urls": [
                 {
-                    "langId": "de",
-                    "privacy": "https://paistry.tech/privacy/",
-                    "legIntClaim": "https://paistry.tech/legitimate-interest/"
+                    "langId": "en",
+                    "privacy": "https://nexverse.ai/privacy-policy-eu",
+                    "legIntClaim": "https://nexverse.ai/privacy-policy-eu#legal-basis-for-processing"
                 }
             ],
             "usesNonCookieAccess": true,
             "dataRetention": {
-                "stdRetention": 397,
+                "stdRetention": 365,
                 "purposes": {
-                    "8": 30,
-                    "10": 90,
-                    "11": 30
+                    "2": 14,
+                    "11": 14
                 },
                 "specialPurposes": {
-                    "1": 30,
-                    "2": 30
+                    "1": 14,
+                    "2": 14,
+                    "3": 14
                 }
             },
             "dataDeclaration": [
                 1,
                 2,
-                5,
+                3,
                 6,
-                7,
-                8,
+                9,
                 10,
                 11
             ],
-            "deviceStorageDisclosureUrl": "https://paistry.tech/.well-known/paistry-device-storage.json"
+            "deviceStorageDisclosureUrl": "https://nexverse.ai/deviceStorage.json"
+        },
+        "1666": {
+            "id": 1666,
+            "name": "HEYTAP PTE. LTD.",
+            "purposes": [
+                1,
+                2,
+                7,
+                9,
+                10
+            ],
+            "legIntPurposes": [],
+            "flexiblePurposes": [],
+            "specialPurposes": [
+                2,
+                3
+            ],
+            "features": [
+                3
+            ],
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": null,
+            "usesCookies": false,
+            "cookieRefresh": false,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://brand.heytap.com/en/privacy.html",
+                    "legIntClaim": "https://cdn.mediagotechnology.com/js/tcf.json"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 1,
+                "purposes": [],
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://adx-op-fr.heytapmobile.com/.well-known/tcf-dsd.json"
         }
     }
 }
