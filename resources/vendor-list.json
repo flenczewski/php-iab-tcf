@@ -1,8 +1,8 @@
 {
     "gvlSpecificationVersion": 3,
-    "vendorListVersion": 184,
+    "vendorListVersion": 185,
     "tcfPolicyVersion": 5,
-    "lastUpdated": "2026-11-05T16:00:18Z",
+    "lastUpdated": "2026-11-12T16:00:19Z",
     "purposes": {
         "1": {
             "id": 1,
@@ -3067,8 +3067,10 @@
                 2,
                 3
             ],
-            "specialFeatures": [],
-            "cookieMaxAgeSeconds": 315360000,
+            "specialFeatures": [
+                1
+            ],
+            "cookieMaxAgeSeconds": 63072000,
             "usesCookies": true,
             "cookieRefresh": true,
             "urls": [
@@ -4890,7 +4892,7 @@
         },
         "90": {
             "id": 90,
-            "name": "Teroa S.A.",
+            "name": "E-Planning S.A.",
             "purposes": [
                 1,
                 2,
@@ -8669,13 +8671,13 @@
             "urls": [
                 {
                     "langId": "fr",
-                    "privacy": "https://www.adux.co/donnees-personnelles/",
-                    "legIntClaim": "https://www.adux.co/donnees-personnelles/"
+                    "privacy": "https://www.adux.com/donnees-personnelles/",
+                    "legIntClaim": "https://www.adux.com/donnees-personnelles/"
                 },
                 {
                     "langId": "en",
-                    "privacy": "https://www.adux.co/en/personal-data/",
-                    "legIntClaim": "https://www.adux.co/en/personal-data/"
+                    "privacy": "https://www.adux.com/en/personal-data/",
+                    "legIntClaim": "https://www.adux.com/en/personal-data/"
                 }
             ],
             "usesNonCookieAccess": false,
@@ -12072,8 +12074,8 @@
             "urls": [
                 {
                     "langId": "en",
-                    "privacy": "https://www.scoota.com/privacy",
-                    "legIntClaim": "https://www.scoota.com/privacy"
+                    "privacy": "https://www.scoota.com/privacy-policy.html",
+                    "legIntClaim": "https://www.scoota.com/privacy-policy.html"
                 }
             ],
             "usesNonCookieAccess": false,
@@ -12777,7 +12779,9 @@
             ],
             "legIntPurposes": [],
             "flexiblePurposes": [],
-            "specialPurposes": [],
+            "specialPurposes": [
+                3
+            ],
             "features": [
                 2
             ],
@@ -12846,7 +12850,9 @@
                     "8": 1827,
                     "10": 1827
                 },
-                "specialPurposes": []
+                "specialPurposes": {
+                    "3": 4320
+                }
             },
             "dataDeclaration": [
                 1,
@@ -16196,18 +16202,16 @@
                 4,
                 5,
                 6,
+                7,
                 9,
-                10,
                 11
             ],
             "legIntPurposes": [],
             "flexiblePurposes": [
                 2,
-                9,
-                10
+                9
             ],
             "specialPurposes": [
-                1,
                 2,
                 3
             ],
@@ -16236,7 +16240,7 @@
             ],
             "usesNonCookieAccess": false,
             "dataRetention": {
-                "stdRetention": 2555,
+                "stdRetention": 365,
                 "purposes": [],
                 "specialPurposes": []
             },
@@ -17630,9 +17634,9 @@
             "specialPurposes": [],
             "features": [],
             "specialFeatures": [],
-            "cookieMaxAgeSeconds": null,
-            "usesCookies": false,
-            "cookieRefresh": false,
+            "cookieMaxAgeSeconds": 31536000,
+            "usesCookies": true,
+            "cookieRefresh": true,
             "urls": [
                 {
                     "langId": "en",
@@ -18249,6 +18253,7 @@
             "overflow": {
                 "httpGetLimit": 128
             },
+            "deletedDate": "2026-11-12T15:45:06.709Z",
             "cookieMaxAgeSeconds": 47335389,
             "usesCookies": true,
             "cookieRefresh": true,
@@ -19199,7 +19204,7 @@
                     "legIntClaim": "https://goldbach.com/ch/fr/politique-de-confidentialite/goldbach-group"
                 }
             ],
-            "usesNonCookieAccess": true,
+            "usesNonCookieAccess": false,
             "dataRetention": {
                 "stdRetention": 365,
                 "purposes": [],
@@ -23296,6 +23301,7 @@
                 3
             ],
             "specialFeatures": [],
+            "deletedDate": "2026-11-12T15:37:44.874Z",
             "cookieMaxAgeSeconds": 31536000,
             "usesCookies": true,
             "cookieRefresh": true,
@@ -23829,13 +23835,13 @@
             "name": "Anzu Virtual Reality LTD",
             "purposes": [
                 1,
-                2,
                 3,
-                4,
-                9
+                4
             ],
             "legIntPurposes": [
-                7
+                2,
+                7,
+                9
             ],
             "flexiblePurposes": [
                 2,
@@ -23997,31 +24003,44 @@
             "name": "Monet Engine Inc",
             "purposes": [
                 1,
-                2,
-                4,
-                7
+                3,
+                4
             ],
-            "legIntPurposes": [],
-            "flexiblePurposes": [],
-            "specialPurposes": [],
-            "features": [],
+            "legIntPurposes": [
+                2,
+                7,
+                10
+            ],
+            "flexiblePurposes": [
+                2,
+                7,
+                10
+            ],
+            "specialPurposes": [
+                1,
+                2,
+                3
+            ],
+            "features": [
+                1,
+                2,
+                3
+            ],
             "specialFeatures": [],
             "cookieMaxAgeSeconds": 31536000,
             "usesCookies": true,
-            "cookieRefresh": false,
+            "cookieRefresh": true,
             "urls": [
                 {
                     "langId": "en",
                     "privacy": "https://adaptmx.com/privacy-policy/",
-                    "legIntClaim": "https://adaptmx.com/privacy-policy/"
+                    "legIntClaim": "https://adaptmx.com/privacy-policy/#legitimate-interests"
                 }
             ],
             "usesNonCookieAccess": true,
             "dataRetention": {
                 "stdRetention": 180,
-                "purposes": {
-                    "4": 365
-                },
+                "purposes": [],
                 "specialPurposes": []
             },
             "dataDeclaration": [
@@ -24030,6 +24049,9 @@
                 3,
                 4,
                 5,
+                6,
+                8,
+                10,
                 11
             ],
             "deviceStorageDisclosureUrl": "https://assets.a-mo.net/tcf/device-storage.json"
@@ -27064,7 +27086,7 @@
             "urls": [
                 {
                     "langId": "en",
-                    "privacy": "https://www.moloco.com/privacy-policy",
+                    "privacy": "https://www.moloco.com/terms-and-policies/website-privacy-notice",
                     "legIntClaim": "https://www.moloco.com/advertising-policy"
                 }
             ],
@@ -29816,6 +29838,7 @@
                 3,
                 4,
                 5,
+                7,
                 8,
                 10,
                 11
@@ -30118,7 +30141,6 @@
             "id": 883,
             "name": "Online Media Solutions LTD ",
             "purposes": [
-                1,
                 2,
                 7
             ],
@@ -30453,47 +30475,6 @@
                 11
             ],
             "deviceStorageDisclosureUrl": "https://tcf.bealion.com/tcf.json"
-        },
-        "892": {
-            "id": 892,
-            "name": "GeoProve Limited",
-            "purposes": [],
-            "legIntPurposes": [],
-            "flexiblePurposes": [],
-            "specialPurposes": [
-                1
-            ],
-            "features": [
-                1,
-                3
-            ],
-            "specialFeatures": [
-                1
-            ],
-            "deletedDate": "2024-11-13T17:02:15.408Z",
-            "cookieMaxAgeSeconds": null,
-            "usesCookies": false,
-            "cookieRefresh": false,
-            "urls": [
-                {
-                    "langId": "en",
-                    "privacy": "https://www.geoprove.io/?page_id=222",
-                    "legIntClaim": "https://www.geoprove.io/?page_id=222"
-                }
-            ],
-            "usesNonCookieAccess": false,
-            "dataRetention": {
-                "purposes": [],
-                "specialPurposes": {
-                    "1": 215
-                }
-            },
-            "dataDeclaration": [
-                1,
-                3,
-                9
-            ],
-            "deviceStorageDisclosureUrl": "https://www.geoprove.io/deviceStorage.json"
         },
         "893": {
             "id": 893,
@@ -33342,11 +33323,11 @@
                 3
             ],
             "features": [
+                1,
                 3
             ],
             "specialFeatures": [
-                1,
-                2
+                1
             ],
             "cookieMaxAgeSeconds": null,
             "usesCookies": false,
@@ -36562,6 +36543,7 @@
             "overflow": {
                 "httpGetLimit": 128
             },
+            "deletedDate": "2026-11-12T11:41:28.213Z",
             "cookieMaxAgeSeconds": 31536000,
             "usesCookies": true,
             "cookieRefresh": true,
@@ -40609,6 +40591,7 @@
                 1,
                 2
             ],
+            "deletedDate": "2026-11-12T11:43:12.098Z",
             "cookieMaxAgeSeconds": 31536000,
             "usesCookies": true,
             "cookieRefresh": true,
@@ -40659,6 +40642,7 @@
                 3
             ],
             "specialFeatures": [],
+            "deletedDate": "2026-11-12T11:44:21.732Z",
             "cookieMaxAgeSeconds": 31536000,
             "usesCookies": true,
             "cookieRefresh": true,
@@ -40917,6 +40901,7 @@
                 1,
                 2
             ],
+            "deletedDate": "2026-11-12T11:28:37.271Z",
             "cookieMaxAgeSeconds": 0,
             "usesCookies": true,
             "cookieRefresh": false,
@@ -43028,13 +43013,13 @@
             "urls": [
                 {
                     "langId": "de",
-                    "privacy": "https://www.esome.com/de/datenschutz/",
-                    "legIntClaim": "https://www.esome.com/de/datenschutz/"
+                    "privacy": "https://www.esome.com/datenschutzerkl%C3%A4rung",
+                    "legIntClaim": "https://www.esome.com/datenschutzerkl%C3%A4rung"
                 },
                 {
                     "langId": "en",
-                    "privacy": "https://www.esome.com/en/data-privacy/",
-                    "legIntClaim": "https://www.esome.com/en/data-privacy/"
+                    "privacy": "https://www.esome.com/en/datenschutzerkl%C3%A4rung",
+                    "legIntClaim": "https://www.esome.com/en/datenschutzerkl%C3%A4rung"
                 }
             ],
             "usesNonCookieAccess": false,
@@ -43052,7 +43037,7 @@
                 10,
                 11
             ],
-            "deviceStorageDisclosureUrl": "https://www.esome.com/wp-content/uploads/2026/07/vendor.json"
+            "deviceStorageDisclosureUrl": "https://f94b590f-e84b-4bea-8f35-cc2f1746c55d.usrfiles.com/ugd/f94b59_abcf0be227bc41c68fb05ab73698c113.json"
         },
         "1214": {
             "id": 1214,
@@ -44298,8 +44283,8 @@
             "urls": [
                 {
                     "langId": "en",
-                    "privacy": "https://roivenue.com/wp-content/uploads/2024/02/Privacy-Policy-Roivenue.pdf",
-                    "legIntClaim": "https://roivenue.com/wp-content/uploads/2024/02/Privacy-Policy-Roivenue.pdf"
+                    "privacy": "https://roivenue.com/privacy-policy-2/",
+                    "legIntClaim": "https://roivenue.com/privacy-policy-2/"
                 }
             ],
             "usesNonCookieAccess": true,
@@ -44315,7 +44300,7 @@
                 6,
                 11
             ],
-            "deviceStorageDisclosureUrl": "https://tr.roivenue.com/device-storage-disclosure/"
+            "deviceStorageDisclosureUrl": "https://tr.roivenue.com/device-storage-disclosure.json"
         },
         "1240": {
             "id": 1240,
@@ -45010,7 +44995,7 @@
             "urls": [
                 {
                     "langId": "en",
-                    "privacy": "https://accurat.ai/legal/privacy-center",
+                    "privacy": "https://accurat.ai/legal/privacy-policy",
                     "legIntClaim": "https://trust.accurat.ai/resources?s=8chel2j4fm42zhutgqxh6z&name=legitimate-interest-assessment"
                 }
             ],
@@ -52114,9 +52099,9 @@
                 3
             ],
             "specialFeatures": [],
-            "cookieMaxAgeSeconds": null,
-            "usesCookies": false,
-            "cookieRefresh": false,
+            "cookieMaxAgeSeconds": 7776000,
+            "usesCookies": true,
+            "cookieRefresh": true,
             "urls": [
                 {
                     "langId": "en",
@@ -56295,6 +56280,7 @@
             "id": 1477,
             "name": "Experience TEN Kft",
             "purposes": [
+                1,
                 3,
                 4
             ],
@@ -56318,8 +56304,8 @@
             "specialFeatures": [
                 1
             ],
-            "cookieMaxAgeSeconds": null,
-            "usesCookies": false,
+            "cookieMaxAgeSeconds": 180,
+            "usesCookies": true,
             "cookieRefresh": false,
             "urls": [
                 {
@@ -56328,7 +56314,7 @@
                     "legIntClaim": "http://ten.media/cookie-policy"
                 }
             ],
-            "usesNonCookieAccess": false,
+            "usesNonCookieAccess": true,
             "dataRetention": {
                 "stdRetention": 1095,
                 "purposes": [],
@@ -56368,7 +56354,7 @@
                     "legIntClaim": ""
                 }
             ],
-            "usesNonCookieAccess": false,
+            "usesNonCookieAccess": true,
             "dataRetention": {
                 "purposes": {
                     "2": 30
@@ -57074,6 +57060,7 @@
                 1,
                 2
             ],
+            "deletedDate": "2026-11-12T11:46:25.313Z",
             "cookieMaxAgeSeconds": null,
             "usesCookies": false,
             "cookieRefresh": false,
@@ -57574,6 +57561,7 @@
             ],
             "features": [],
             "specialFeatures": [],
+            "deletedDate": "2026-11-12T11:49:39.16Z",
             "cookieMaxAgeSeconds": null,
             "usesCookies": false,
             "cookieRefresh": false,
@@ -59783,7 +59771,7 @@
                 {
                     "langId": "en",
                     "privacy": "https://www.viantinc.com/privacy-center/",
-                    "legIntClaim": "https://s42464.pcdn.co/wp-content/uploads/2025/09/Viant-Ad-Platform-Privacy-Policy-September-2025.pdf"
+                    "legIntClaim": "https://s49695.pcdn.co/wp-content/uploads/2026/09/VIANT-AD-PLATFORM-PRIVACY-POLICY-FINAL-09.23.2026.pdf"
                 }
             ],
             "usesNonCookieAccess": false,
@@ -61151,7 +61139,7 @@
         },
         "1572": {
             "id": 1572,
-            "name": "Bidlo",
+            "name": "Bidgrid",
             "purposes": [
                 1,
                 2,
@@ -61171,8 +61159,8 @@
             "urls": [
                 {
                     "langId": "en",
-                    "privacy": "https://bidlo.io/privacy-policy",
-                    "legIntClaim": "https://bidlo.io/privacy-policy"
+                    "privacy": "https://bidgrid.io/privacy-policy",
+                    "legIntClaim": "https://bidgrid.io/privacy-policy"
                 }
             ],
             "usesNonCookieAccess": true,
@@ -61187,7 +61175,7 @@
                 8,
                 11
             ],
-            "deviceStorageDisclosureUrl": "https://bidlo.io/deviceStorage.json"
+            "deviceStorageDisclosureUrl": "https://bidgrid.io/deviceStorage.json"
         },
         "1573": {
             "id": 1573,
@@ -61304,8 +61292,12 @@
                 9,
                 10
             ],
-            "specialPurposes": [],
+            "specialPurposes": [
+                1,
+                2
+            ],
             "features": [
+                1,
                 3
             ],
             "specialFeatures": [],
@@ -61322,9 +61314,9 @@
                     "legIntClaim": "https://www.mediago.com/policy/"
                 }
             ],
-            "usesNonCookieAccess": true,
+            "usesNonCookieAccess": false,
             "dataRetention": {
-                "stdRetention": 365,
+                "stdRetention": 180,
                 "purposes": [],
                 "specialPurposes": []
             },
@@ -61490,15 +61482,21 @@
         "1579": {
             "id": 1579,
             "name": "HONGKONG THUNDER SOLUTION LIMITED",
-            "purposes": [],
-            "legIntPurposes": [
+            "purposes": [
+                1,
                 2,
+                3,
+                4,
                 7,
+                9,
                 10
             ],
+            "legIntPurposes": [],
             "flexiblePurposes": [
                 2,
-                7
+                7,
+                9,
+                10
             ],
             "specialPurposes": [
                 1,
@@ -61506,16 +61504,20 @@
                 3
             ],
             "features": [
+                1,
                 2,
                 3
             ],
-            "specialFeatures": [],
+            "specialFeatures": [
+                1,
+                2
+            ],
             "overflow": {
                 "httpGetLimit": 128
             },
-            "cookieMaxAgeSeconds": null,
-            "usesCookies": false,
-            "cookieRefresh": false,
+            "cookieMaxAgeSeconds": 2592000,
+            "usesCookies": true,
+            "cookieRefresh": true,
             "urls": [
                 {
                     "langId": "en",
@@ -61523,20 +61525,22 @@
                     "legIntClaim": "https://thunder-monetize.com/privacy"
                 }
             ],
-            "usesNonCookieAccess": false,
+            "usesNonCookieAccess": true,
             "dataRetention": {
-                "stdRetention": 0,
-                "purposes": {
-                    "7": 30
-                },
-                "specialPurposes": {
-                    "1": 30
-                }
+                "stdRetention": 30,
+                "purposes": [],
+                "specialPurposes": []
             },
             "dataDeclaration": [
                 1,
                 2,
                 3,
+                4,
+                6,
+                7,
+                8,
+                9,
+                10,
                 11
             ],
             "deviceStorageDisclosureUrl": "https://thunder-monetize.com/device-storage.json"
@@ -61544,15 +61548,21 @@
         "1580": {
             "id": 1580,
             "name": "THUNDER MONETIZATION PTE. LTD.",
-            "purposes": [],
-            "legIntPurposes": [
+            "purposes": [
+                1,
                 2,
+                3,
+                4,
                 7,
+                9,
                 10
             ],
+            "legIntPurposes": [],
             "flexiblePurposes": [
                 2,
-                7
+                7,
+                9,
+                10
             ],
             "specialPurposes": [
                 1,
@@ -61560,16 +61570,20 @@
                 3
             ],
             "features": [
+                1,
                 2,
                 3
             ],
-            "specialFeatures": [],
+            "specialFeatures": [
+                1,
+                2
+            ],
             "overflow": {
                 "httpGetLimit": 128
             },
-            "cookieMaxAgeSeconds": null,
-            "usesCookies": false,
-            "cookieRefresh": false,
+            "cookieMaxAgeSeconds": 2592000,
+            "usesCookies": true,
+            "cookieRefresh": true,
             "urls": [
                 {
                     "langId": "en",
@@ -61577,20 +61591,22 @@
                     "legIntClaim": "https://thunder-monetize.com/privacy"
                 }
             ],
-            "usesNonCookieAccess": false,
+            "usesNonCookieAccess": true,
             "dataRetention": {
-                "stdRetention": 0,
-                "purposes": {
-                    "7": 30
-                },
-                "specialPurposes": {
-                    "1": 28
-                }
+                "stdRetention": 30,
+                "purposes": [],
+                "specialPurposes": []
             },
             "dataDeclaration": [
                 1,
                 2,
                 3,
+                4,
+                6,
+                7,
+                8,
+                9,
+                10,
                 11
             ],
             "deviceStorageDisclosureUrl": "https://thunder-monetize.com/device-storage.json"
@@ -61690,18 +61706,17 @@
         "1583": {
             "id": 1583,
             "name": "Metyks",
-            "purposes": [],
+            "purposes": [
+                3,
+                4
+            ],
             "legIntPurposes": [
-                2,
                 7,
-                8,
                 9,
-                10,
-                11
+                10
             ],
             "flexiblePurposes": [
                 7,
-                8,
                 9
             ],
             "specialPurposes": [
@@ -61733,7 +61748,11 @@
             "dataDeclaration": [
                 1,
                 2,
-                4
+                4,
+                7,
+                8,
+                10,
+                11
             ],
             "deviceStorageDisclosureUrl": "https://metyks.com/.well-known/deviceStorage.json"
         },
@@ -65793,7 +65812,13 @@
                 10,
                 11
             ],
-            "flexiblePurposes": [],
+            "flexiblePurposes": [
+                2,
+                7,
+                8,
+                9,
+                11
+            ],
             "specialPurposes": [
                 1,
                 2,
@@ -66001,6 +66026,98 @@
                 11
             ],
             "deviceStorageDisclosureUrl": "https://adx-op-fr.heytapmobile.com/.well-known/tcf-dsd.json"
+        },
+        "1667": {
+            "id": 1667,
+            "name": "Measure Protocol Limited",
+            "purposes": [],
+            "legIntPurposes": [
+                7,
+                9
+            ],
+            "flexiblePurposes": [],
+            "specialPurposes": [],
+            "features": [
+                1,
+                2,
+                3
+            ],
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": null,
+            "usesCookies": false,
+            "cookieRefresh": false,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://www.measureprotocol.com/privacy",
+                    "legIntClaim": "https://www.measureprotocol.com/privacy#7-how-we-use-your-personal-data"
+                }
+            ],
+            "usesNonCookieAccess": false,
+            "dataRetention": {
+                "stdRetention": 30,
+                "purposes": [],
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                5,
+                6,
+                7,
+                8,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://www.measureprotocol.com/tcf/deviceStorage.json"
+        },
+        "1668": {
+            "id": 1668,
+            "name": "Glass Labs Technology Limited",
+            "purposes": [
+                1,
+                2,
+                7,
+                9,
+                10
+            ],
+            "legIntPurposes": [],
+            "flexiblePurposes": [],
+            "specialPurposes": [
+                1,
+                2,
+                3
+            ],
+            "features": [
+                3
+            ],
+            "specialFeatures": [
+                1
+            ],
+            "cookieMaxAgeSeconds": null,
+            "usesCookies": false,
+            "cookieRefresh": false,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://byglasslabs.io/privacy-policy",
+                    "legIntClaim": "https://byglasslabs.io/legitimate-interests"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 92,
+                "purposes": [],
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                3,
+                6,
+                8,
+                9,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://byglasslabs.io/tcf/deviceStorage.json"
         }
     }
 }
