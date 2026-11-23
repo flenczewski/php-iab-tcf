@@ -1,8 +1,8 @@
 {
     "gvlSpecificationVersion": 3,
-    "vendorListVersion": 185,
+    "vendorListVersion": 186,
     "tcfPolicyVersion": 5,
-    "lastUpdated": "2026-11-12T16:00:19Z",
+    "lastUpdated": "2026-11-19T16:00:24Z",
     "purposes": {
         "1": {
             "id": 1,
@@ -5057,7 +5057,7 @@
         },
         "93": {
             "id": 93,
-            "name": "SCOPE3 SAS",
+            "name": "P39 France",
             "purposes": [
                 1
             ],
@@ -5382,10 +5382,7 @@
             ],
             "legIntPurposes": [],
             "flexiblePurposes": [],
-            "specialPurposes": [
-                1,
-                2
-            ],
+            "specialPurposes": [],
             "features": [
                 1,
                 2,
@@ -9312,7 +9309,7 @@
                     "legIntClaim": "https://www.ipromote.com/privacy-policy/"
                 }
             ],
-            "usesNonCookieAccess": false,
+            "usesNonCookieAccess": true,
             "dataRetention": {
                 "stdRetention": 365,
                 "purposes": {
@@ -10734,25 +10731,19 @@
         },
         "263": {
             "id": 263,
-            "name": "Nativo, Inc.",
+            "name": "Life360, Inc.",
             "purposes": [
                 1,
                 3,
-                4,
-                5,
-                6
+                4
             ],
             "legIntPurposes": [
                 2,
                 7,
-                8,
                 9,
-                10,
-                11
+                10
             ],
-            "flexiblePurposes": [
-                11
-            ],
+            "flexiblePurposes": [],
             "specialPurposes": [
                 1,
                 2,
@@ -10764,7 +10755,7 @@
                 3
             ],
             "specialFeatures": [],
-            "cookieMaxAgeSeconds": 31536000,
+            "cookieMaxAgeSeconds": 157680000,
             "usesCookies": true,
             "cookieRefresh": true,
             "urls": [
@@ -15396,14 +15387,14 @@
             "specialFeatures": [
                 1
             ],
-            "deletedDate": "2026-07-13T11:16:44.856Z",
             "cookieMaxAgeSeconds": null,
             "usesCookies": false,
             "cookieRefresh": false,
             "urls": [
                 {
                     "langId": "pl",
-                    "privacy": "https://proxi.cloud/polityka-prywatnosci/"
+                    "privacy": "https://proxi.cloud/polityka-prywatnosci/",
+                    "legIntClaim": "https://proxi.cloud/polityka-prywatnosci/"
                 }
             ],
             "usesNonCookieAccess": true,
@@ -15417,6 +15408,7 @@
                 2,
                 3,
                 6,
+                8,
                 9,
                 10,
                 11
@@ -19489,7 +19481,10 @@
             "id": 597,
             "name": "Adjust Digital A/S",
             "purposes": [],
-            "legIntPurposes": [],
+            "legIntPurposes": [
+                7,
+                10
+            ],
             "flexiblePurposes": [],
             "specialPurposes": [
                 2
@@ -19508,15 +19503,17 @@
             ],
             "usesNonCookieAccess": false,
             "dataRetention": {
+                "stdRetention": 30,
                 "purposes": [],
-                "specialPurposes": {
-                    "2": 0
-                }
+                "specialPurposes": []
             },
             "dataDeclaration": [
-                1
+                1,
+                2,
+                6,
+                8
             ],
-            "deviceStorageDisclosureUrl": "https://betterbannerscloud.com/tcf/tcf.json"
+            "deviceStorageDisclosureUrl": "https://cloud.adjust-digital.com/tcf/tcf.json"
         },
         "598": {
             "id": 598,
@@ -20035,7 +20032,7 @@
             "specialFeatures": [
                 1
             ],
-            "cookieMaxAgeSeconds": 5184000,
+            "cookieMaxAgeSeconds": 34560000,
             "usesCookies": true,
             "cookieRefresh": true,
             "urls": [
@@ -20835,44 +20832,6 @@
             "name": "TrueData Solutions, Inc.",
             "purposes": [
                 1,
-                3,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11
-            ],
-            "legIntPurposes": [],
-            "flexiblePurposes": [],
-            "specialPurposes": [],
-            "features": [
-                1,
-                2,
-                3
-            ],
-            "specialFeatures": [
-                1
-            ],
-            "cookieMaxAgeSeconds": 78840000,
-            "usesCookies": true,
-            "cookieRefresh": true,
-            "urls": [
-                {
-                    "langId": "en",
-                    "privacy": "https://www.truedata.co/privacy-policy/",
-                    "legIntClaim": "https://www.truedata.co/privacy-policy/"
-                }
-            ],
-            "usesNonCookieAccess": true,
-            "dataRetention": {
-                "stdRetention": 900,
-                "purposes": [],
-                "specialPurposes": []
-            },
-            "dataDeclaration": [
-                1,
                 2,
                 3,
                 4,
@@ -20881,10 +20840,52 @@
                 7,
                 8,
                 9,
+                10
+            ],
+            "legIntPurposes": [],
+            "flexiblePurposes": [],
+            "specialPurposes": [
+                1,
+                3
+            ],
+            "features": [
+                1,
+                2,
+                3
+            ],
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": 31536000,
+            "usesCookies": true,
+            "cookieRefresh": true,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://truedata.co/assets/TrueData-Privacy-Policy.pdf",
+                    "legIntClaim": "https://truedata.co/assets/TrueData-Privacy-Policy.pdf"
+                },
+                {
+                    "langId": "en",
+                    "privacy": "https://truedata.co/assets/TrueData-Advertising-Privacy-Policy.pdf",
+                    "legIntClaim": "https://truedata.co/assets/TrueData-Advertising-Privacy-Policy.pdf"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 365,
+                "purposes": [],
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                3,
+                5,
+                6,
+                8,
                 10,
                 11
             ],
-            "deviceStorageDisclosureUrl": "https://id5-sync.com/tcf/disclosures.json"
+            "deviceStorageDisclosureUrl": "https://www.truedata.co/deviceStorage.json"
         },
         "649": {
             "id": 649,
@@ -21782,9 +21783,9 @@
             "cookieRefresh": true,
             "urls": [
                 {
-                    "langId": "pl",
-                    "privacy": "https://go.pl/polityka-prywatnosci/",
-                    "legIntClaim": "https://go.pl/polityka-prywatnosci/"
+                    "langId": "en",
+                    "privacy": "https://wpartner.pl/privacy-policy.pdf",
+                    "legIntClaim": "https://wpartner.pl/privacy-policy.pdf"
                 }
             ],
             "usesNonCookieAccess": true,
@@ -22276,9 +22277,9 @@
             "cookieRefresh": true,
             "urls": [
                 {
-                    "langId": "pl",
-                    "privacy": "https://go.pl/polityka-prywatnosci/",
-                    "legIntClaim": "https://go.pl/polityka-prywatnosci/"
+                    "langId": "en",
+                    "privacy": "https://wpartner.pl/privacy-policy.pdf",
+                    "legIntClaim": "https://wpartner.pl/privacy-policy.pdf"
                 }
             ],
             "usesNonCookieAccess": true,
@@ -23666,7 +23667,7 @@
         },
         "729": {
             "id": 729,
-            "name": "Cavai AS",
+            "name": "Gimle Partners AS",
             "purposes": [
                 7
             ],
@@ -23696,7 +23697,10 @@
                 "specialPurposes": []
             },
             "dataDeclaration": [
-                6
+                1,
+                2,
+                6,
+                8
             ],
             "deviceStorageDisclosureUrl": "https://delivery-3.cavai.com/assets/general/json/gdpr-device-storage-disclosure.json"
         },
@@ -24026,7 +24030,10 @@
                 2,
                 3
             ],
-            "specialFeatures": [],
+            "specialFeatures": [
+                1,
+                2
+            ],
             "cookieMaxAgeSeconds": 31536000,
             "usesCookies": true,
             "cookieRefresh": true,
@@ -24051,6 +24058,7 @@
                 5,
                 6,
                 8,
+                9,
                 10,
                 11
             ],
@@ -25342,7 +25350,9 @@
                 1,
                 3
             ],
-            "specialFeatures": [],
+            "specialFeatures": [
+                2
+            ],
             "cookieMaxAgeSeconds": 33696000,
             "usesCookies": true,
             "cookieRefresh": false,
@@ -26918,7 +26928,7 @@
             "overflow": {
                 "httpGetLimit": 128
             },
-            "cookieMaxAgeSeconds": 25200,
+            "cookieMaxAgeSeconds": 31104000,
             "usesCookies": true,
             "cookieRefresh": true,
             "urls": [
@@ -26939,7 +26949,7 @@
                 2,
                 3
             ],
-            "deviceStorageDisclosureUrl": "https://gw-api.zmaticoo.com/v3/cmp"
+            "deviceStorageDisclosureUrl": "https://gw-api.zmaticoo.com/v3/cmp.json"
         },
         "804": {
             "id": 804,
@@ -29803,8 +29813,11 @@
             "name": "Experian LTD",
             "purposes": [
                 1,
+                2,
                 3,
-                5
+                5,
+                9,
+                10
             ],
             "legIntPurposes": [],
             "flexiblePurposes": [],
@@ -29816,7 +29829,9 @@
                 2,
                 3
             ],
-            "specialFeatures": [],
+            "specialFeatures": [
+                1
+            ],
             "cookieMaxAgeSeconds": 15780000,
             "usesCookies": true,
             "cookieRefresh": false,
@@ -30108,7 +30123,6 @@
             "specialFeatures": [
                 1
             ],
-            "deletedDate": "2026-03-02T07:57:32.586Z",
             "cookieMaxAgeSeconds": null,
             "usesCookies": false,
             "cookieRefresh": false,
@@ -39556,8 +39570,15 @@
             "usesNonCookieAccess": true,
             "dataRetention": {
                 "stdRetention": 1825,
-                "purposes": [],
-                "specialPurposes": []
+                "purposes": {
+                    "3": 1095,
+                    "5": 1095,
+                    "9": 1095,
+                    "11": 1095
+                },
+                "specialPurposes": {
+                    "1": 1095
+                }
             },
             "dataDeclaration": [
                 1,
@@ -43480,7 +43501,7 @@
             "specialFeatures": [
                 2
             ],
-            "cookieMaxAgeSeconds": 62985600,
+            "cookieMaxAgeSeconds": 157593600,
             "usesCookies": true,
             "cookieRefresh": true,
             "urls": [
@@ -48807,8 +48828,8 @@
             "urls": [
                 {
                     "langId": "en",
-                    "privacy": "https://www.raaslab.com/privacy-policy",
-                    "legIntClaim": "https://www.raaslab.com/legitimate-interest-statement"
+                    "privacy": "https://legal.raaslab.com/privacy-policy",
+                    "legIntClaim": "https://legal.raaslab.com/legitimate-interest-statement"
                 }
             ],
             "usesNonCookieAccess": true,
@@ -51835,10 +51856,7 @@
             "purposes": [],
             "legIntPurposes": [
                 2,
-                7,
-                8,
-                9,
-                10
+                7
             ],
             "flexiblePurposes": [],
             "specialPurposes": [
@@ -51861,24 +51879,15 @@
             ],
             "usesNonCookieAccess": false,
             "dataRetention": {
+                "stdRetention": 180,
                 "purposes": {
                     "2": 30,
-                    "7": 30,
-                    "8": 30,
-                    "9": 30,
-                    "10": 180
+                    "7": 30
                 },
-                "specialPurposes": {
-                    "1": 180,
-                    "2": 180,
-                    "3": 180
-                }
+                "specialPurposes": []
             },
             "dataDeclaration": [
-                1,
-                6,
-                8,
-                11
+                6
             ],
             "deviceStorageDisclosureUrl": "https://api.imirsive.com/dsd.json"
         },
@@ -55836,7 +55845,7 @@
             "overflow": {
                 "httpGetLimit": 32
             },
-            "cookieMaxAgeSeconds": 2592000,
+            "cookieMaxAgeSeconds": 31536000,
             "usesCookies": true,
             "cookieRefresh": true,
             "urls": [
@@ -57561,7 +57570,6 @@
             ],
             "features": [],
             "specialFeatures": [],
-            "deletedDate": "2026-11-12T11:49:39.16Z",
             "cookieMaxAgeSeconds": null,
             "usesCookies": false,
             "cookieRefresh": false,
@@ -58082,7 +58090,7 @@
             "id": 1513,
             "name": "Appcelerate ",
             "purposes": [
-                3
+                2
             ],
             "legIntPurposes": [],
             "flexiblePurposes": [],
@@ -58096,18 +58104,19 @@
                 {
                     "langId": "es",
                     "privacy": "https://appcelerate.ai/privacy-policy/",
-                    "legIntClaim": ""
+                    "legIntClaim": "https://appcelerate.ai/privacy-policy/"
                 }
             ],
             "usesNonCookieAccess": false,
             "dataRetention": {
                 "purposes": {
-                    "3": 30
+                    "2": 60
                 },
                 "specialPurposes": []
             },
             "dataDeclaration": [
-                9
+                4,
+                7
             ],
             "deviceStorageDisclosureUrl": "https://geoactivate.ai/.well-known/device-storage.json"
         },
@@ -60095,16 +60104,22 @@
                 9,
                 10
             ],
-            "flexiblePurposes": [],
+            "flexiblePurposes": [
+                7,
+                9,
+                10
+            ],
             "specialPurposes": [
                 1,
                 2,
                 3
             ],
-            "features": [],
-            "specialFeatures": [
-                2
+            "features": [
+                1,
+                2,
+                3
             ],
+            "specialFeatures": [],
             "overflow": {
                 "httpGetLimit": 32
             },
@@ -64913,8 +64928,13 @@
             "urls": [
                 {
                     "langId": "en",
-                    "privacy": "https://cloudtechnologies.pl/datacloudconnect/netprivacypolicy",
-                    "legIntClaim": "https://cloudtechnologies.pl/datacloudconnect/netprivacypolicy"
+                    "privacy": "https://datacloudconnect.com/internet-advertising-privacy-policy",
+                    "legIntClaim": "https://datacloudconnect.com/internet-advertising-privacy-policy"
+                },
+                {
+                    "langId": "en",
+                    "privacy": "https://datacloudconnect.com/privacy",
+                    "legIntClaim": "https://datacloudconnect.com/privacy"
                 }
             ],
             "usesNonCookieAccess": true,
@@ -64968,8 +64988,13 @@
             "urls": [
                 {
                     "langId": "en",
-                    "privacy": "https://cloudtechnologies.pl/datacloudcollect/netprivacypolicy",
-                    "legIntClaim": "https://cloudtechnologies.pl/datacloudcollect/netprivacypolicy"
+                    "privacy": "https://datacloudcollect.com/internet-advertising-privacy-policy",
+                    "legIntClaim": "https://datacloudcollect.com/internet-advertising-privacy-policy"
+                },
+                {
+                    "langId": "en",
+                    "privacy": "https://datacloudcollect.com/privacy",
+                    "legIntClaim": "https://datacloudcollect.com/privacy"
                 }
             ],
             "usesNonCookieAccess": true,
@@ -66118,6 +66143,181 @@
                 11
             ],
             "deviceStorageDisclosureUrl": "https://byglasslabs.io/tcf/deviceStorage.json"
+        },
+        "1669": {
+            "id": 1669,
+            "name": "Adxe Pty Ltd",
+            "purposes": [
+                1,
+                3,
+                4
+            ],
+            "legIntPurposes": [
+                2,
+                7,
+                10
+            ],
+            "flexiblePurposes": [],
+            "specialPurposes": [
+                1,
+                2,
+                3
+            ],
+            "features": [
+                1,
+                2,
+                3
+            ],
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": 157680000,
+            "usesCookies": true,
+            "cookieRefresh": true,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://adxe.com/privacy",
+                    "legIntClaim": "https://adxe.com/privacy#legal-bases"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 30,
+                "purposes": {
+                    "3": 360,
+                    "4": 360,
+                    "7": 395,
+                    "10": 395
+                },
+                "specialPurposes": {
+                    "3": 1825
+                }
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://adxe.com/device-storage.json"
+        },
+        "1670": {
+            "id": 1670,
+            "name": "Camino Labs LTD",
+            "purposes": [
+                1,
+                3,
+                4
+            ],
+            "legIntPurposes": [
+                2,
+                7
+            ],
+            "flexiblePurposes": [
+                2,
+                7
+            ],
+            "specialPurposes": [
+                1,
+                2
+            ],
+            "features": [
+                1,
+                3
+            ],
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": 2592000,
+            "usesCookies": true,
+            "cookieRefresh": true,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://camino-labs.com/privacy",
+                    "legIntClaim": "https://camino-labs.com/privacy"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 30,
+                "purposes": [],
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                8,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://static.cmngrp.com/device-storage.json"
+        },
+        "1673": {
+            "id": 1673,
+            "name": "TapMind Technologies Private Limited",
+            "purposes": [
+                1,
+                3,
+                4
+            ],
+            "legIntPurposes": [
+                2,
+                7,
+                9,
+                10
+            ],
+            "flexiblePurposes": [
+                2,
+                7,
+                9,
+                10
+            ],
+            "specialPurposes": [
+                1,
+                2,
+                3
+            ],
+            "features": [],
+            "specialFeatures": [],
+            "cookieMaxAgeSeconds": null,
+            "usesCookies": false,
+            "cookieRefresh": false,
+            "urls": [
+                {
+                    "langId": "en",
+                    "privacy": "https://tapmind.com/privacy",
+                    "legIntClaim": "https://tapmind.com/privacy/legitimate-interests"
+                }
+            ],
+            "usesNonCookieAccess": true,
+            "dataRetention": {
+                "stdRetention": 90,
+                "purposes": {
+                    "3": 365,
+                    "4": 365,
+                    "7": 395,
+                    "10": 180
+                },
+                "specialPurposes": []
+            },
+            "dataDeclaration": [
+                1,
+                2,
+                3,
+                6,
+                8,
+                10,
+                11
+            ],
+            "deviceStorageDisclosureUrl": "https://tapmind.com/legal/storage-disclosure.json"
         }
     }
 }
