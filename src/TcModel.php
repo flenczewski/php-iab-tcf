@@ -59,6 +59,9 @@ final class TcModel implements \JsonSerializable
     /** @var int[]|null sorted, de-duplicated; null omits the segment */
     public readonly ?array $allowedVendors;
 
+    /** @var list<PublisherRestriction> in the order given, re-indexed from 0 */
+    public readonly array $publisherRestrictions;
+
     /**
      * Id lists are stored sorted and de-duplicated, and the two-letter codes
      * upper-cased — the only forms the wire format can carry — so a model
@@ -98,7 +101,7 @@ final class TcModel implements \JsonSerializable
         array $purposesLITransparency = [],
         array $vendorConsents = [],
         array $vendorLegitimateInterests = [],
-        public readonly array $publisherRestrictions = [],
+        array $publisherRestrictions = [],
         ?array $disclosedVendors = [],
         ?array $allowedVendors = null,
         public readonly ?\DateTimeImmutable $created = null,
@@ -159,6 +162,9 @@ final class TcModel implements \JsonSerializable
                 );
             }
         }
+        // Re-indexed so jsonSerialize() always emits a JSON array: keys the
+        // caller happened to use (strings, gaps) used to turn it into an object.
+        $this->publisherRestrictions = array_values($publisherRestrictions);
     }
 
     private static function assertInRange(string $field, int $value, int $min, int $max): void
@@ -174,10 +180,14 @@ final class TcModel implements \JsonSerializable
      * a CMP produced — conformant or not — can be decoded and inspected; call
      * this before encoding a model of your own.
      *
-     * Checks: legitimate interest (established, or required by a publisher
-     * restriction) for a purpose in {@see self::PURPOSES_WITHOUT_LEGITIMATE_INTEREST}
-     * — only purpose 1 when $tcfPolicyVersion predates TCF v2.2 (below 4), as
-     * the string is judged by the policy it declares; the reserved
+     * Checks: a globally scoped string (IsServiceSpecific = 0; the IAB
+     * withdrew global scope in 2021); VendorListVersion 0, which names no
+     * Global Vendor List; legitimate interest (established, or required by a
+     * publisher restriction) for a purpose in
+     * {@see self::PURPOSES_WITHOUT_LEGITIMATE_INTEREST} — only purpose 1 when
+     * $tcfPolicyVersion predates TCF v2.2 (below 4), as the string is judged
+     * by the policy it declares; consent or legitimate interest for a vendor
+     * missing from a present Disclosed Vendors segment; the reserved
      * RestrictionType::UNDEFINED; a vendor given two restriction types for the
      * same purpose; and Created later than LastUpdated.
      *
@@ -191,10 +201,39 @@ final class TcModel implements \JsonSerializable
             : [1];
         $policy = "TCF policy version {$this->tcfPolicyVersion}";
 
+        if (!$this->isServiceSpecific) {
+            $violations[] = 'isServiceSpecific is false, which makes this a globally scoped TC String; '
+                . 'the IAB has withdrawn global scope, so CMPs must emit service-specific strings.';
+        }
+        if ($this->vendorListVersion === 0) {
+            $violations[] = 'vendorListVersion is 0, which names no Global Vendor List; versions start at 1.';
+        }
+
         $forbiddenLi = array_values(array_intersect($this->purposesLITransparency, $withoutLi));
         if ($forbiddenLi !== []) {
             $violations[] = 'purposesLITransparency establishes legitimate interest for purposes '
                 . implode(', ', $forbiddenLi) . ", which {$policy} does not allow under that legal basis.";
+        }
+
+        // TCF v2.3 made Disclosed Vendors the record of which vendors the user
+        // was shown, so a signal for any vendor outside it was never collected.
+        if ($this->disclosedVendors !== null) {
+            $disclosed = array_flip($this->disclosedVendors);
+            $signals = ['vendorConsents' => $this->vendorConsents, 'vendorLegitimateInterests' => $this->vendorLegitimateInterests];
+            foreach ($signals as $field => $vendorIds) {
+                $undisclosed = array_values(array_filter(
+                    $vendorIds,
+                    static fn (int $id): bool => !isset($disclosed[$id]),
+                ));
+                if ($undisclosed !== []) {
+                    $violations[] = sprintf(
+                        '%s names %s %s, missing from disclosedVendors.',
+                        $field,
+                        count($undisclosed) === 1 ? 'vendor' : 'vendors',
+                        self::summarizeIds($undisclosed),
+                    );
+                }
+            }
         }
 
         $typesByPurposeAndVendor = [];
@@ -232,6 +271,19 @@ final class TcModel implements \JsonSerializable
         }
 
         return $violations;
+    }
+
+    /**
+     * Lists at most the first ten ids, so a message about a large vendor set
+     * stays readable.
+     *
+     * @param non-empty-list<int> $ids
+     */
+    private static function summarizeIds(array $ids): string
+    {
+        $shown = implode(', ', array_slice($ids, 0, 10));
+
+        return count($ids) > 10 ? sprintf('%s and %d more', $shown, count($ids) - 10) : $shown;
     }
 
     /** @return array<string,mixed> */

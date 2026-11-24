@@ -12,6 +12,9 @@ use Flenczewski\IabTcf\Exception\InvalidArgumentException;
  */
 final class Base64Url
 {
+    /** How much of an invalid segment an exception message quotes. */
+    private const MAX_QUOTED_LENGTH = 32;
+
     /**
      * PHP turns the keys chr(48)..chr(57) into the integers 0..9; strtr()
      * compares keys as strings, so they still match the bytes "0".."9".
@@ -40,19 +43,43 @@ final class Base64Url
     {
         $base64 = strtr($base64Url, '-_', '+/');
         $remainder = strlen($base64) % 4;
+        // One leftover character carries only 6 bits, less than a byte, so no
+        // encoder produces it. base64_decode() silently drops it instead of
+        // failing, which let trailing junk through.
+        if ($remainder === 1) {
+            throw new InvalidArgumentException(
+                'Invalid base64url segment ' . self::describe($base64Url)
+                . ': its length leaves a single dangling character.'
+            );
+        }
         if ($remainder > 0) {
             $base64 .= str_repeat('=', 4 - $remainder);
         }
 
         $bytes = base64_decode($base64, true);
         if ($bytes === false) {
-            throw new InvalidArgumentException("Invalid base64url segment: \"{$base64Url}\".");
+            throw new InvalidArgumentException('Invalid base64url segment ' . self::describe($base64Url) . '.');
         }
 
         // A lookup table instead of str_pad(decbin()) per byte: about four
         // times faster, which matters because this is the one step whose cost
         // grows with the (untrusted) input length.
         return strtr($bytes, self::byteToBits());
+    }
+
+    /**
+     * Quotes untrusted input for an exception message: cut to a short prefix
+     * and escaped, so a hostile segment can neither flood a log with up to
+     * MAX_TC_STRING_LENGTH bytes nor forge log lines with embedded newlines.
+     */
+    private static function describe(string $segment): string
+    {
+        $prefix = substr($segment, 0, self::MAX_QUOTED_LENGTH);
+        $quoted = '"' . addcslashes($prefix, "\0..\37\"\\\177..\377") . '"';
+
+        return strlen($segment) > self::MAX_QUOTED_LENGTH
+            ? sprintf('%s... (%d characters)', $quoted, strlen($segment))
+            : $quoted;
     }
 
     /** @return array<string,string> */

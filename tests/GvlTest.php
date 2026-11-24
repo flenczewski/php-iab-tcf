@@ -384,4 +384,38 @@ final class GvlTest extends TestCase
         self::assertEquals($gvl, $restored);
         self::assertTrue($restored->isDeleted($restored->vendors[8]));
     }
+
+    /** The queries are served from an index; it must agree with a plain scan of the list. */
+    public function testIndexedQueriesMatchAFullScanOfTheBundledList(): void
+    {
+        $gvl = Gvl::bundled();
+        $queries = [
+            'purposes' => $gvl->getVendorsWithConsentPurpose(...),
+            'legIntPurposes' => $gvl->getVendorsWithLegIntPurpose(...),
+            'features' => $gvl->getVendorsWithFeature(...),
+            'specialFeatures' => $gvl->getVendorsWithSpecialFeature(...),
+            'specialPurposes' => $gvl->getVendorsWithSpecialPurpose(...),
+        ];
+
+        foreach ($queries as $kind => $query) {
+            foreach ([1, 2, 3, 7, 10, 99] as $id) {
+                foreach ([false, true] as $includeDeleted) {
+                    $expected = array_values(array_filter(
+                        $gvl->vendors,
+                        static fn (Vendor $v): bool => ($includeDeleted || !$gvl->isDeleted($v))
+                            && in_array($id, $v->{$kind}, true),
+                    ));
+                    self::assertSame($expected, $query($id, $includeDeleted), "{$kind} {$id}");
+                }
+            }
+        }
+    }
+
+    public function testAVendorDeclaringAnIdTwiceIsReturnedOnce(): void
+    {
+        $vendor = new Vendor(7, 'Twice', purposes: [1, 1]);
+        $gvl = new Gvl(3, 1, 5, new \DateTimeImmutable('2026-01-01'), [7 => $vendor]);
+
+        self::assertSame([$vendor], $gvl->getVendorsWithConsentPurpose(1));
+    }
 }

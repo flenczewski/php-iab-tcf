@@ -26,7 +26,12 @@ final class IdSet
      */
     public static function normalize(string $field, array $ids, int $min, int $max): array
     {
-        $set = [];
+        // Lists that are already sorted and unique are by far the common case:
+        // TcStringDecoder hands every list over in that form. Noticing it in
+        // the validation pass skips the set + sort below, which cost ~65 us for
+        // a 1300-id Disclosed Vendors list and dominated decoding a real string.
+        $ordered = array_is_list($ids);
+        $previous = $min - 1;
         foreach ($ids as $id) {
             if (!is_int($id)) {
                 throw new InvalidArgumentException("{$field} must contain only integers.");
@@ -36,9 +41,22 @@ final class IdSet
                     "{$field} contains id {$id}, which is outside the valid range {$min}..{$max}."
                 );
             }
-            $set[$id] = true;
+            if ($id <= $previous) {
+                $ordered = false;
+            }
+            $previous = $id;
         }
 
+        if ($ordered) {
+            /** @var list<int> $ids */
+            return $ids;
+        }
+
+        /** @var array<int> $ids validated above */
+        $set = [];
+        foreach ($ids as $id) {
+            $set[$id] = true;
+        }
         $ids = array_keys($set);
         sort($ids);
 

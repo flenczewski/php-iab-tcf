@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Flenczewski\IabTcf\Tests;
 
 use Flenczewski\IabTcf\Base64Url;
+use Flenczewski\IabTcf\Exception\InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 final class Base64UrlTest extends TestCase
@@ -61,5 +62,30 @@ final class Base64UrlTest extends TestCase
     {
         self::assertSame('', Base64Url::encodeBits(''));
         self::assertSame('', Base64Url::decodeToBits(''));
+    }
+
+    /** One leftover character is under a byte; no encoder emits it, so it is trailing junk. */
+    public function testASingleDanglingCharacterIsRejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('single dangling character');
+
+        Base64Url::decodeToBits('AAAAB');
+    }
+
+    /** The segment is attacker-controlled and the message typically ends up in a log. */
+    public function testTheErrorMessageQuotesOnlyAnEscapedPrefixOfTheSegment(): void
+    {
+        $segment = "AB\nforged log line" . str_repeat('!', 10_000);
+
+        try {
+            Base64Url::decodeToBits($segment);
+            self::fail('Expected an exception.');
+        } catch (InvalidArgumentException $e) {
+            self::assertStringNotContainsString("\n", $e->getMessage());
+            self::assertStringContainsString('"AB\\nforged log line', $e->getMessage());
+            self::assertStringContainsString('(10018 characters)', $e->getMessage());
+            self::assertLessThan(120, strlen($e->getMessage()));
+        }
     }
 }

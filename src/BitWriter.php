@@ -69,10 +69,14 @@ final class BitWriter
             }
         }
 
-        $set = array_flip($ids);
-        for ($id = 1; $id <= $width; $id++) {
-            $this->bits .= isset($set[$id]) ? '1' : '0';
+        // Start from all zeros and flip the set positions: one allocation
+        // instead of a string append per bit, which mattered for a vendor
+        // bitfield that can be 65535 bits wide.
+        $field = str_repeat('0', $width);
+        foreach ($ids as $id) {
+            $field[$id - 1] = '1';
         }
+        $this->bits .= $field;
 
         return $this;
     }

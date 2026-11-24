@@ -41,10 +41,12 @@ final class BitReader
     {
         $bits = $this->readBits($width);
         $ids = [];
-        for ($i = 0; $i < $width; $i++) {
-            if ($bits[$i] === '1') {
-                $ids[] = $i + 1;
-            }
+        // strpos() jumps straight to the next set bit in C rather than testing
+        // every position in PHP; vendor bitfields are typically sparse.
+        $position = strpos($bits, '1');
+        while ($position !== false) {
+            $ids[] = $position + 1;
+            $position = strpos($bits, '1', $position + 1);
         }
 
         return $ids;

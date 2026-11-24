@@ -42,4 +42,16 @@ final class TcModelSerializationTest extends TestCase
 
         self::assertStringContainsString('"cmpId":1', $json);
     }
+
+    public function testPublisherRestrictionsAlwaysSerializeAsAJsonArray(): void
+    {
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, publisherRestrictions: [
+            'first' => new PublisherRestriction(2, RestrictionType::REQUIRE_CONSENT, [1]),
+            7 => new PublisherRestriction(3, RestrictionType::NOT_ALLOWED, [2]),
+        ]);
+
+        self::assertTrue(array_is_list($model->publisherRestrictions));
+        $json = json_encode($model, JSON_THROW_ON_ERROR);
+        self::assertStringContainsString('"publisherRestrictions":[{"purposeId":2', $json);
+    }
 }
