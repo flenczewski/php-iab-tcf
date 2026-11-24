@@ -59,8 +59,11 @@ $tcString = TcStringEncoder::encode($model, new DateTimeImmutable('2026-01-01T00
 
 The constructor enforces TCF *field bounds* only. Before encoding a model of
 your own, ask it what the TCF *policy* forbids but the wire format could still
-carry — legitimate interest for purpose 1 or 3–6 (only purpose 1 when
-`tcfPolicyVersion` predates TCF v2.2, i.e. is below 4), the reserved `UNDEFINED`
+carry — a globally scoped string (`isServiceSpecific: false`, which the IAB
+has withdrawn; note it is still the constructor default), `vendorListVersion`
+0, legitimate interest for purpose 1 or 3–6 (only purpose 1 when
+`tcfPolicyVersion` predates TCF v2.2, i.e. is below 4), consent or legitimate
+interest for a vendor missing from `disclosedVendors`, the reserved `UNDEFINED`
 restriction type, a vendor given two restriction types for one purpose,
 `created` after `lastUpdated`:
 

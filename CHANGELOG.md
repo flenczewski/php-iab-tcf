@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+`policyViolations()` reports more than it did, and one malformed input that was
+accepted is now rejected — see **Changed**.
+
+### Changed
+
+- **`TcModel::policyViolations()` checks three more rules:** a globally scoped
+  string (`isServiceSpecific` false — the IAB has withdrawn global scope),
+  `vendorListVersion` 0 (no Global Vendor List has that version), and consent
+  or legitimate interest for a vendor missing from a present
+  `disclosedVendors` segment (TCF v2.3 made that segment the record of what
+  the user was shown). A model built with the constructor defaults now reports
+  the first two; pass `isServiceSpecific: true` and the GVL's version.
+- **A base64url segment with a single dangling character is rejected.** Such a
+  length is never valid base64; `base64_decode()` silently dropped the extra
+  character, so trailing junk decoded as if it were not there.
+
+### Fixed
+
+- **Exception messages quoted the whole invalid segment.** A hostile cookie
+  could put up to 256 KiB, newlines included, into an
+  `InvalidTcStringException` message and from there into a log. The message
+  now quotes an escaped 32-character prefix and the length.
+- **`publisherRestrictions` could serialise as a JSON object.** `TcModel`
+  kept the caller's array keys, so string keys or gaps made `jsonSerialize()`
+  emit `{...}`. The list is now re-indexed.
+
+### Performance
+
+Measured on PHP 8.3 with opcache and JIT, against a string disclosing 1300
+vendors with ~600 consents and ~400 legitimate interests:
+
+- **Decoding is ~5× faster** (315 µs → 55–65 µs), and a 43 KB string the
+  default `maxLength` admits decodes ~6–8× faster (28 ms → 3.5–5 ms).
+  `TcModel` no longer re-sorts the already sorted lists the decoder hands it,
+  and bitfields are scanned with `strpos()`.
+- **Encoding is ~6× faster** (615 µs → ~95 µs): `RangeSection::encode()`
+  computes the length of both encodings and builds only the shorter one, and
+  skips `array_unique()` + `sort()` for lists that are already normalised.
+- **`Gvl::getVendorsWith*()` are O(1) after the first call** (~190 µs → under
+  1 µs per query) thanks to a lazily built index.
+
 ## [2.2.0] - 2026-09-27
 
 As with 2.1.0, several inputs that were accepted are now rejected, and the GVL queries return fewer vendors by default — see

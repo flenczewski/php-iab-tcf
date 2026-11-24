@@ -16,6 +16,8 @@ final class TcModelPolicyTest extends TestCase
         $model = new TcModel(
             cmpId: 1,
             cmpVersion: 1,
+            vendorListVersion: 1,
+            isServiceSpecific: true,
             purposesConsent: [1, 2, 3, 4],
             purposesLITransparency: [2, 7, 8, 9, 10],
             publisherRestrictions: [
@@ -33,7 +35,7 @@ final class TcModelPolicyTest extends TestCase
     /** Purpose 1 never allowed legitimate interest; TCF v2.2 withdrew it for purposes 3 to 6. */
     public function testLegitimateInterestForAPurposeThatCannotUseItIsReported(): void
     {
-        $model = new TcModel(cmpId: 1, cmpVersion: 1, purposesLITransparency: [1, 2, 3, 6, 7]);
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, vendorListVersion: 1, isServiceSpecific: true, purposesLITransparency: [1, 2, 3, 6, 7]);
 
         $violations = $model->policyViolations();
 
@@ -43,7 +45,7 @@ final class TcModelPolicyTest extends TestCase
 
     public function testRequiringLegitimateInterestForSuchAPurposeIsReported(): void
     {
-        $model = new TcModel(cmpId: 1, cmpVersion: 1, publisherRestrictions: [
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, vendorListVersion: 1, isServiceSpecific: true, publisherRestrictions: [
             new PublisherRestriction(4, RestrictionType::REQUIRE_LEGITIMATE_INTEREST, [7]),
         ]);
 
@@ -59,6 +61,8 @@ final class TcModelPolicyTest extends TestCase
         $model = new TcModel(
             cmpId: 1,
             cmpVersion: 1,
+            vendorListVersion: 1,
+            isServiceSpecific: true,
             tcfPolicyVersion: 3,
             purposesLITransparency: [1, 2, 3, 4, 5, 6, 7],
             publisherRestrictions: [
@@ -76,14 +80,14 @@ final class TcModelPolicyTest extends TestCase
 
     public function testTcf22IsThePolicyVersionThatWithdrewLegitimateInterestForPurposes3To6(): void
     {
-        $model = new TcModel(cmpId: 1, cmpVersion: 1, tcfPolicyVersion: 4, purposesLITransparency: [3]);
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, vendorListVersion: 1, isServiceSpecific: true, tcfPolicyVersion: 4, purposesLITransparency: [3]);
 
         self::assertCount(1, $model->policyViolations());
     }
 
     public function testTheUndefinedRestrictionTypeIsReported(): void
     {
-        $model = new TcModel(cmpId: 1, cmpVersion: 1, publisherRestrictions: [
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, vendorListVersion: 1, isServiceSpecific: true, publisherRestrictions: [
             new PublisherRestriction(2, RestrictionType::UNDEFINED, [7]),
         ]);
 
@@ -95,7 +99,7 @@ final class TcModelPolicyTest extends TestCase
 
     public function testAVendorRestrictedTwoWaysForOnePurposeIsReported(): void
     {
-        $model = new TcModel(cmpId: 1, cmpVersion: 1, publisherRestrictions: [
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, vendorListVersion: 1, isServiceSpecific: true, publisherRestrictions: [
             new PublisherRestriction(2, RestrictionType::NOT_ALLOWED, [7, 8]),
             new PublisherRestriction(2, RestrictionType::REQUIRE_CONSENT, [8, 9]),
             // Same vendor, different purpose: fine.
@@ -115,6 +119,8 @@ final class TcModelPolicyTest extends TestCase
         $model = new TcModel(
             cmpId: 1,
             cmpVersion: 1,
+            vendorListVersion: 1,
+            isServiceSpecific: true,
             created: new \DateTimeImmutable('2026-02-01T00:00:00Z'),
             lastUpdated: new \DateTimeImmutable('2026-01-01T00:00:00Z'),
         );
@@ -123,5 +129,76 @@ final class TcModelPolicyTest extends TestCase
 
         self::assertCount(1, $violations);
         self::assertStringContainsString('after lastUpdated', $violations[0]);
+    }
+
+    public function testAGloballyScopedStringIsReported(): void
+    {
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, vendorListVersion: 1);
+
+        $violations = $model->policyViolations();
+
+        self::assertCount(1, $violations);
+        self::assertStringContainsString('globally scoped', $violations[0]);
+    }
+
+    public function testVendorListVersionZeroIsReported(): void
+    {
+        $model = new TcModel(cmpId: 1, cmpVersion: 1, isServiceSpecific: true);
+
+        $violations = $model->policyViolations();
+
+        self::assertCount(1, $violations);
+        self::assertStringContainsString('vendorListVersion is 0', $violations[0]);
+    }
+
+    public function testSignalsForUndisclosedVendorsAreReported(): void
+    {
+        $model = new TcModel(
+            cmpId: 1,
+            cmpVersion: 1,
+            vendorListVersion: 1,
+            isServiceSpecific: true,
+            vendorConsents: [1, 2, 3],
+            vendorLegitimateInterests: [3, 4],
+            disclosedVendors: [1, 3],
+        );
+
+        $violations = $model->policyViolations();
+
+        self::assertSame([
+            'vendorConsents names vendor 2, missing from disclosedVendors.',
+            'vendorLegitimateInterests names vendor 4, missing from disclosedVendors.',
+        ], $violations);
+    }
+
+    public function testALongListOfUndisclosedVendorsIsSummarized(): void
+    {
+        $model = new TcModel(
+            cmpId: 1,
+            cmpVersion: 1,
+            vendorListVersion: 1,
+            isServiceSpecific: true,
+            vendorConsents: range(1, 25),
+        );
+
+        $violations = $model->policyViolations();
+
+        self::assertCount(1, $violations);
+        self::assertStringContainsString('1, 2, 3, 4, 5, 6, 7, 8, 9, 10 and 15 more', $violations[0]);
+    }
+
+    /** Without the segment (a pre-v2.3 string) there is nothing to check disclosure against. */
+    public function testAnAbsentDisclosedVendorsSegmentIsNotReportedForSignals(): void
+    {
+        $model = new TcModel(
+            cmpId: 1,
+            cmpVersion: 1,
+            vendorListVersion: 1,
+            isServiceSpecific: true,
+            vendorConsents: [1, 2],
+            disclosedVendors: null,
+        );
+
+        self::assertSame([], $model->policyViolations());
     }
 }

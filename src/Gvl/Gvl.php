@@ -26,6 +26,16 @@ final class Gvl
      */
     private readonly array $deletedVendorIds;
 
+    /**
+     * Lazily built inverted indexes for the getVendorsWith*() queries:
+     * declaration kind (suffixed ":live" without deleted vendors) => declared
+     * id => vendors, in $vendors order. Scanning every vendor per query cost
+     * ~100 us on the full list; after the first query a lookup is O(1).
+     *
+     * @var array<string, array<int, list<Vendor>>>
+     */
+    private array $index = [];
+
     /** @param array<int,Vendor> $vendors keyed by vendor id */
     public function __construct(
         public readonly int $gvlSpecificationVersion,
@@ -155,19 +165,19 @@ final class Gvl
      */
     public function getVendorsWithConsentPurpose(int $purposeId, bool $includeDeleted = false): array
     {
-        return $this->vendorsDeclaring($purposeId, static fn (Vendor $v): array => $v->purposes, $includeDeleted);
+        return $this->vendorsDeclaring($purposeId, 'purposes', $includeDeleted);
     }
 
     /** @return Vendor[] see {@see self::getVendorsWithConsentPurpose()} for $includeDeleted */
     public function getVendorsWithLegIntPurpose(int $purposeId, bool $includeDeleted = false): array
     {
-        return $this->vendorsDeclaring($purposeId, static fn (Vendor $v): array => $v->legIntPurposes, $includeDeleted);
+        return $this->vendorsDeclaring($purposeId, 'legIntPurposes', $includeDeleted);
     }
 
     /** @return Vendor[] see {@see self::getVendorsWithConsentPurpose()} for $includeDeleted */
     public function getVendorsWithFeature(int $featureId, bool $includeDeleted = false): array
     {
-        return $this->vendorsDeclaring($featureId, static fn (Vendor $v): array => $v->features, $includeDeleted);
+        return $this->vendorsDeclaring($featureId, 'features', $includeDeleted);
     }
 
     /** @return Vendor[] see {@see self::getVendorsWithConsentPurpose()} for $includeDeleted */
@@ -175,7 +185,7 @@ final class Gvl
     {
         return $this->vendorsDeclaring(
             $specialFeatureId,
-            static fn (Vendor $v): array => $v->specialFeatures,
+            'specialFeatures',
             $includeDeleted,
         );
     }
@@ -185,7 +195,7 @@ final class Gvl
     {
         return $this->vendorsDeclaring(
             $specialPurposeId,
-            static fn (Vendor $v): array => $v->specialPurposes,
+            'specialPurposes',
             $includeDeleted,
         );
     }
@@ -197,16 +207,27 @@ final class Gvl
     }
 
     /**
-     * @param callable(Vendor): int[] $declarations
-     * @return Vendor[]
+     * @param 'purposes'|'legIntPurposes'|'features'|'specialFeatures'|'specialPurposes' $kind
+     * @return list<Vendor>
      */
-    private function vendorsDeclaring(int $id, callable $declarations, bool $includeDeleted): array
+    private function vendorsDeclaring(int $id, string $kind, bool $includeDeleted): array
     {
-        return array_values(array_filter(
-            $this->vendors,
-            fn (Vendor $v): bool => ($includeDeleted || !isset($this->deletedVendorIds[$v->id]))
-                && in_array($id, $declarations($v), true),
-        ));
+        $key = $includeDeleted ? $kind : "{$kind}:live";
+        if (!isset($this->index[$key])) {
+            $byId = [];
+            foreach ($this->vendors as $vendor) {
+                if (!$includeDeleted && isset($this->deletedVendorIds[$vendor->id])) {
+                    continue;
+                }
+                // A vendor listing one id twice must still appear once.
+                foreach (array_unique($vendor->{$kind}) as $declaredId) {
+                    $byId[$declaredId][] = $vendor;
+                }
+            }
+            $this->index[$key] = $byId;
+        }
+
+        return $this->index[$key][$id] ?? [];
     }
 
     /**

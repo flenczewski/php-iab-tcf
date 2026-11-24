@@ -26,20 +26,21 @@ final class RangeSection
         $vendorIds = self::normalize($vendorIds);
         $maxVendorId = $vendorIds === [] ? 0 : max($vendorIds);
 
-        $bitfieldBits = self::encodeBitfield($vendorIds, $maxVendorId);
         $entries = self::toRanges($vendorIds);
 
-        $useRange = false;
-        $rangeBits = '';
-        if (count($entries) <= self::MAX_RANGE_ENTRIES) {
-            $rangeBits = self::buildRangeListBits($entries);
-            $useRange = strlen($rangeBits) < strlen($bitfieldBits);
-        }
+        // Both lengths follow from the entries alone, so only the shorter
+        // encoding is ever built: a bitfield is exactly MaxVendorId bits, and
+        // a range list is NumEntries(12) plus 17 bits per single id or 33 per
+        // range. Building both used to dominate encode().
+        $useRange = count($entries) <= self::MAX_RANGE_ENTRIES
+            && self::rangeListLength($entries) < $maxVendorId;
 
         $writer = new BitWriter();
         $writer->writeUint($maxVendorId, 16);
         $writer->writeBool($useRange);
-        $writer->writeBits($useRange ? $rangeBits : $bitfieldBits);
+        $writer->writeBits(
+            $useRange ? self::buildRangeListBits($entries) : self::encodeBitfield($vendorIds, $maxVendorId)
+        );
 
         return $writer->toBitString();
     }
@@ -82,6 +83,21 @@ final class RangeSection
         }
 
         return self::buildRangeListBits($entries);
+    }
+
+    /**
+     * Length in bits of what buildRangeListBits() would produce for $entries.
+     *
+     * @param array<int, array{0: int, 1: int}> $entries
+     */
+    private static function rangeListLength(array $entries): int
+    {
+        $length = 12;
+        foreach ($entries as [$start, $end]) {
+            $length += $start === $end ? 17 : 33;
+        }
+
+        return $length;
     }
 
     /** @param array<int, array{0: int, 1: int}> $entries */
@@ -203,7 +219,24 @@ final class RangeSection
      */
     private static function normalize(array $ids): array
     {
-        $ids = array_values(array_unique($ids));
+        // TcModel and PublisherRestriction already store their ids sorted and
+        // unique, so check for that before paying for a sort. array_unique()
+        // was the slow part: it compares as strings by default, and cost
+        // ~90 us for a 1300-id list that needed no work at all.
+        $previous = PHP_INT_MIN;
+        $ordered = array_is_list($ids);
+        foreach ($ids as $id) {
+            if ($id <= $previous) {
+                $ordered = false;
+                break;
+            }
+            $previous = $id;
+        }
+        if ($ordered) {
+            return $ids;
+        }
+
+        $ids = array_keys(array_flip($ids));
         sort($ids);
 
         return $ids;
