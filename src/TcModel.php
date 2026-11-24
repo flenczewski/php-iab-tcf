@@ -30,7 +30,7 @@ final class TcModel implements \JsonSerializable
     public const PURPOSES_WITHOUT_LEGITIMATE_INTEREST = [1, 3, 4, 5, 6];
 
     /** The TCF v2.2 policy version, the first to withdraw legitimate interest for purposes 3 to 6. */
-    private const TCF_V2_2_POLICY_VERSION = 4;
+    public const TCF_V2_2_POLICY_VERSION = 4;
 
     /** Upper-case, as the wire format stores it. */
     public readonly string $consentLanguage;

@@ -239,6 +239,36 @@ $problems = $gvl->validateConsents($model);
 
 This is a lightweight sanity check (unknown or deleted vendor ids, vendors with consent/LI but no matching declared purpose in the GVL) — not a formal, exhaustive TCF validator.
 
+### Evaluating consent
+
+`ConsentEvaluator` answers the question most consumers actually have — *may
+vendor X process data for purpose Y?* — by combining the decoded signals with
+the vendor's declarations in the GVL:
+
+```php
+use Flenczewski\IabTcf\Consent\ConsentEvaluator;
+
+$evaluator = new ConsentEvaluator(TcStringDecoder::decode($tcString), $gvl);
+
+$evaluator->canProcess(755, 1);              // bool
+$decision = $evaluator->evaluate(755, 2);    // Decision
+$decision->allowed;                          // bool
+$decision->reason;                           // DecisionReason, e.g. VENDOR_NOT_DISCLOSED
+$decision->legalBasis;                       // ?LegalBasis: CONSENT or LEGITIMATE_INTEREST
+$evaluator->hasSpecialFeatureOptIn(755, 1);  // bool
+```
+
+For each check it requires, in order: the vendor exists in the GVL and is not
+deleted; no `NOT_ALLOWED` publisher restriction; the vendor declares the
+purpose, under the basis a `REQUIRE_*` restriction asks for (a switch is only
+possible for a purpose the vendor declares as flexible); then, for consent,
+the purpose and vendor consent bits, and for legitimate interest, the purpose
+and vendor LI bits, a purpose the declared policy version allows LI for, and —
+when the string has a Disclosed Vendors segment — the vendor listed in it
+(TCF v2.3). It does not check that the GVL matches `vendorListVersion`; pass the
+list that fits your deployment. Build one evaluator per decoded string: every
+check after construction is O(1).
+
 ### Caching
 
 Parsing the full list takes tens of milliseconds, most of it `json_decode()`.

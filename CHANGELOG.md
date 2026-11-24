@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Consent\ConsentEvaluator`**: decides whether a vendor may process data
+  for a purpose, from a `TcModel` and a `Gvl`, and says why
+  (`Decision`, `DecisionReason`, `LegalBasis`). It applies publisher
+  restrictions and flexible purposes, the TCF v2.2 limits on legitimate
+  interest, and TCF v2.3's Disclosed Vendors rule. See README "Evaluating
+  consent".
+- `TcModel::TCF_V2_2_POLICY_VERSION` is now public.
+
 `policyViolations()` reports more than it did, and one malformed input that was
 accepted is now rejected — see **Changed**.
 
